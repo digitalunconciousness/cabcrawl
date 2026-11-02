@@ -6,7 +6,6 @@ import sys
 
 from flask import (
     Blueprint,
-    current_app,
     flash,
     redirect,
     render_template,
@@ -130,7 +129,7 @@ def storage_admin():
     """Photo storage: how much, how many, and what a cleanup would remove."""
     from app.services.storage import PHOTO_MAX_AGE_DAYS, photo_stats
 
-    return render_template("storage_admin.html", stats=photo_stats(current_app.static_folder),
+    return render_template("storage_admin.html", stats=photo_stats(),
                            max_age_days=PHOTO_MAX_AGE_DAYS)
 
 
@@ -142,7 +141,7 @@ def admin_cleanup_photos():
     it is on (it was manager, with no page of theirs offering it)."""
     from app.services.storage import cleanup_photos
 
-    removed = cleanup_photos(current_app.static_folder)
+    removed = cleanup_photos()
     log_security_event("PHOTO_CLEANUP", user_id=current_user.id,
                        details=f"Removed {removed} unused photo file(s)")
     flash(f"Removed {removed} unused photo{'' if removed == 1 else 's'}.", "success")

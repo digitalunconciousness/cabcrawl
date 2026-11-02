@@ -101,7 +101,7 @@
       <div class="field{% if errors.priority %} is-invalid{% endif %}">
         <label for="priority">Priority</label>
         <select id="priority" name="priority">
-          {%- set chosen = form.get("priority", r.priority) %}
+          {%- set chosen = form.get("priority", r.priority|priority) %}
           {%- for p in priorities %}<option value="{{ p }}"{% if p == chosen %} selected{% endif %}>{{ p }}</option>{% endfor %}
         </select>
         {{ err("priority") }}

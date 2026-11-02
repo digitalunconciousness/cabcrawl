@@ -67,7 +67,7 @@ def auth(device):
 # ---------------------------------------------------------------------------
 
 def test_the_contract_matches_its_checksums():
-    """Two copies of anything drift. GATBOX runs the equivalent against its own."""
+    """Copies of anything drift. GATBOX, which owns it, and the other hub check theirs too."""
     path = os.path.join(REPO_ROOT, "scripts", "contract_checksums.py")
     spec = importlib.util.spec_from_file_location("contract_checksums", path)
     mod = importlib.util.module_from_spec(spec)
@@ -76,6 +76,49 @@ def test_the_contract_matches_its_checksums():
 
     problems = mod.compare(pathlib.Path(CONTRACT))
     assert not problems, "contract/v1 does not match CHECKSUMS:\n  " + "\n  ".join(problems)
+
+
+# Where sibling checkouts of the other repositories may be: beside this one, or a cloud
+# session's read-only reference clones. CONTRACT_SIBLINGS, a space-separated list of repo
+# directories, overrides it.
+SIBLINGS = ("gatbox", "Gatbox", "arcadetech-tracker", "ArcadeTech-Tracker", "shop-hub")
+
+
+def _sibling_contracts():
+    """(repo, path) of every sibling checkout's copy of contract v1 that exists."""
+    import pathlib
+
+    here = pathlib.Path(CONTRACT).resolve()
+    env = os.environ.get("CONTRACT_SIBLINGS")
+    parent = pathlib.Path(REPO_ROOT).parent
+    repos = ([pathlib.Path(p) for p in env.split()] if env is not None else
+             [parent / n for n in SIBLINGS] + [pathlib.Path("/opt/refs") / n for n in SIBLINGS])
+    found = []
+    for repo in repos:
+        for sub in ("docs/contract/v1", "contract/v1"):
+            path = repo / sub
+            if (path / "CHECKSUMS").is_file() and path.resolve() != here:
+                found.append((str(repo), path))
+                break
+    return found
+
+
+def _tree(path):
+    return {p.relative_to(path).as_posix(): p.read_bytes()
+            for p in sorted(path.rglob("*")) if p.is_file()}
+
+
+def test_the_contract_is_the_same_as_in_sibling_checkouts():
+    """A copy that matches its own CHECKSUMS can still be an older edition than GATBOX's.
+    Every sibling checkout found must hold exactly the same files (pull it if it's behind)."""
+    import pathlib
+
+    found = _sibling_contracts()
+    if not found:
+        pytest.skip("no sibling checkout found")
+    mine = _tree(pathlib.Path(CONTRACT))
+    differ = [repo for repo, path in found if _tree(path) != mine]
+    assert not differ, "contract/v1 differs from the copy in: " + ", ".join(differ)
 
 
 def test_the_example_uids_follow_the_documented_rule():

@@ -5,6 +5,10 @@ GATBOX sends. It's a Flask app, deployed as a systemd service behind a Cloudflar
 PostgreSQL in production and SQLite for development and tests. The user guide is in `docs/wiki/`
 (published to the GitHub wiki), and the server runbook is in `deploy/RUNBOOK.md`.
 
+**Read `docs/agents/RULES.md` first.** It is the one set of agent rules for GATBOX, cabcrawl and
+the tech tracker (GATBOX owns it; this copy is vendored, byte-identical), and it wins where this
+file disagrees, except on this repository's own facts and the hard rules below.
+
 ## Hard rules
 
 - **No personal data in the repository.** The repository is public. Don't commit usernames,
@@ -15,9 +19,10 @@ PostgreSQL in production and SQLite for development and tests. The user guide is
   `/p/<code>`, `/i/<code>`, `/u/<code>` and `/report/<token>`. Never change those routes or the
   stored codes (`Game.barcode` and the others). Any other URL change needs a redirect from the
   old address.
-- **The GATBOX API contract is frozen.** `/api/v1` and `contract/v1/` change only on purpose,
-  together with GATBOX's copy; `tests/test_api_v1_contract.py` and the checksums enforce it. The
-  skeeball API is left exactly as it is.
+- **The GATBOX API contract is frozen.** `/api/v1` and `contract/v1/` change only on purpose.
+  GATBOX owns the contract (since 2026-10-28) and this copy is vendored from its
+  `docs/contract/v1/`, byte-identical; `tests/test_api_v1_contract.py` and the checksums enforce
+  it, and compare it with any sibling checkout. The skeeball API is left exactly as it is.
 - **Never touch the production database** or `instance/arcade.db`. Work against a scratch
   database.
 - **Commits use UTC** (`TZ=UTC git commit ...`).
@@ -33,6 +38,7 @@ python -m pytest                                   # the whole suite, on SQLite
 python -m pytest tests/test_inventory_links.py     # one file
 ruff check <files you changed>                     # no new findings in what you touch
 python scripts/check_schema.py                     # the database matches the models
+scripts/privacy_check.sh master..HEAD              # what a push would publish (clean before any push)
 ```
 
 - **Screenshots** of every page, at 390 and 1280 wide, on the synthetic arcade:
@@ -68,8 +74,14 @@ python scripts/check_schema.py                     # the database matches the mo
 ## How changes are made
 
 - Small steps and small commits, each with a test that fails without the change.
-- After a step: show the diff stat, the test results and screenshots (390 and 1280), then wait
-  for the owner's go.
+- **The privacy check guards every push.** Enable it once per clone with `git config core.hooksPath
+  .githooks`; it needs the owner's patterns file (`.githooks/patterns.local`, git-ignored, or
+  `~/.config/gatbox-family/patterns.local`) and refuses the push without one. Never print or
+  copy that file's contents. The script and hook are the shared ones, the same in all three
+  repositories; what only this one must never commit is in `.githooks/privacy.conf`.
+- One OK per change (the rules, §3): the owner's OK on the design note covers the code and the
+  push. The PR shows the diff stat, the test results, the privacy-check output and screenshots
+  (390 and 1280); the owner merges and deploys.
 - Ask rather than guess when a decision belongs to the owner.
 - Say plainly what was and wasn't checked.
 - Use invented data in every test, screenshot and doc.

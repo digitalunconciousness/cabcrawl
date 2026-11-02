@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Deploy arcade-tracker on the server. Backs the database up first, then pulls,
-# installs, migrates, restarts and checks that the site answers. Stops at the
-# first failure and never carries on past a bad step.
+# Deploy arcade-tracker on the server. Backs the database and the uploaded files
+# up first, then pulls, installs, migrates, restarts and checks that the site
+# answers. Stops at the first failure and never carries on past a bad step.
 #
 #   deploy/deploy.sh            # deploy          (run as root)
 #   deploy/deploy.sh --check    # preflight only: change nothing
@@ -110,6 +110,17 @@ size=$(stat -c %s "$dump")
 printf '    %s (%s bytes)\n' "$dump" "$size"
 chmod 600 "$dump"
 
+# --- 1b. back the uploads up ---------------------------------------------------
+# The dump holds the work orders; their photos, the machine and part images and the
+# branding are files under uploads/ (and, until scripts/move_maintenance_photos.py has
+# run, static/maintenance_photos/). Archived with the same stamp, kept as long as the
+# dumps. scripts/backup_uploads.py decides what goes in; the RUNBOOK says how to restore.
+step "Backing the uploads up"
+uploads="$BACKUPS/arcade_tracker-uploads-$stamp.tar.gz"
+"$VENV/bin/python" scripts/backup_uploads.py --repo "$REPO" --out "$uploads" \
+    || die "the uploads backup failed; nothing has changed yet (the database dump is $dump)"
+chmod 600 "$uploads"
+
 # --- 2. pull ------------------------------------------------------------------
 step "Pulling $BRANCH"
 before=$(git rev-parse HEAD)
@@ -175,8 +186,11 @@ fi
 printf '    answered OK\n'
 
 # --- 7. prune old dumps -------------------------------------------------------
-step "Keeping the newest $KEEP dumps"
+step "Keeping the newest $KEEP dumps and uploads archives"
 ls -1t "$BACKUPS"/arcade_tracker-*.sql.gz 2>/dev/null | tail -n +$((KEEP + 1)) | while read -r old; do
+    rm -f -- "$old"; printf '    removed %s\n' "$(basename "$old")"
+done
+ls -1t "$BACKUPS"/arcade_tracker-uploads-*.tar.gz 2>/dev/null | tail -n +$((KEEP + 1)) | while read -r old; do
     rm -f -- "$old"; printf '    removed %s\n' "$(basename "$old")"
 done
 

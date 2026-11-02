@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Refuse a push that would publish private values. The checks are scripts/privacy_check.sh,
+# the same one run by hand before a push; this hook runs it over exactly what each pushed
+# ref adds to the remote. Enabled per clone with:
+#
+#     git config core.hooksPath .githooks
+#
+# One hook and one script for the three repositories, byte-identical (owned by GATBOX). The
+# repositories are public: anything pushed is published, and history keeps it after a delete.
+# Without an owner patterns file the check fails, and so does the push.
+set -u
+
+readonly ZERO=0000000000000000000000000000000000000000
+# The script beside this hook's own checkout, so the checks are always this repository's.
+CHECK=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)/scripts/privacy_check.sh
+fail=0
+
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+  [ "$local_sha" = "$ZERO" ] && continue                  # deleting a branch: nothing to check
+  if [ "$remote_sha" = "$ZERO" ]; then
+    range=("$local_sha" --not --remotes)                    # new branch: what the remote lacks
+  else
+    range=("$remote_sha..$local_sha")
+  fi
+  bash "$CHECK" "${range[@]}" >&2 || fail=1
+done
+
+if [ "$fail" -ne 0 ]; then
+  printf '\npre-push: REFUSED. Fix the commits; nothing was sent.\n' >&2
+  exit 1
+fi
+exit 0

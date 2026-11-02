@@ -185,7 +185,7 @@ def last_coin_count(game: Game) -> int:
 
 # --- delete --------------------------------------------------------------------------------
 
-def delete_machine(game: Game, upload_folder: str, static_folder: str) -> dict[str, int]:
+def delete_machine(game: Game, upload_folder: str) -> dict[str, int]:
     """Delete a machine with its play records and work orders, leaving nothing dangling.
 
     The old view bulk-deleted with ``query.delete()``, which skips the ORM cascades, so the
@@ -194,7 +194,7 @@ def delete_machine(game: Game, upload_folder: str, static_folder: str) -> dict[s
     unlinked, and part requests made for its orders keep their item and lose the order link.
     Caller commits.
     """
-    from app.services.work_orders import photo_dir
+    from app.services.storage import photo_folders
 
     orders = MaintenanceRecord.query.filter_by(game_id=game.id).all()
     order_ids = [o.id for o in orders]
@@ -224,8 +224,9 @@ def delete_machine(game: Game, upload_folder: str, static_folder: str) -> dict[s
     db.session.expunge(game)
     Game.query.filter_by(id=game.id).delete(synchronize_session=False)
 
-    for name, folder in [(image, upload_folder)] + [(p, photo_dir(static_folder))
-                                                     for p in photos]:
+    # The machine's image, and its orders' photos from whichever photo folder holds them.
+    for name, folder in [(image, upload_folder)] + [(p, f) for p in photos
+                                                     for f in photo_folders()]:
         if name and os.path.basename(name) == name:
             try:
                 os.remove(os.path.join(folder, name))

@@ -115,7 +115,7 @@
       <ul class="rows">
         {%- for order in open_maintenance[:10] %}
         <li class="row"><span class="row__main"><a class="row__title" href="{{ url_for('maintenance.maintenance_detail', record_id=order.id) }}">{{ order.game.name if order.game else (order.location_description or "General maintenance") }}</a>
-            <span class="row__meta">{{ order.priority }} priority</span></span>
+            <span class="row__meta">{{ order.priority|priority }} priority</span></span>
           <span class="row__end">{{ ui.status(order.status) }}</span></li>
         {%- endfor %}
       </ul>

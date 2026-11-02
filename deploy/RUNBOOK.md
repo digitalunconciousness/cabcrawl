@@ -33,6 +33,14 @@ It backs the database up with `pg_dump` before touching anything, refuses to
 continue if the dump is too small to restore from, and stops at the first
 failure. If the health check fails it prints the exact rollback commands.
 
+Beside each dump it archives the uploaded files with the same stamp,
+`arcade_tracker-uploads-<stamp>.tar.gz`: everything under `uploads/` (work-order photos,
+machine and part images, branding), any photos still in `static/maintenance_photos/`, and
+`static/profile_pics/`. `scripts/backup_uploads.py` decides what goes in. It keeps the newest
+`ARCADE_KEEP` (14) of each, so budget roughly 14 times the size of those folders in
+`/var/backups/arcade-tracker` (Admin, Storage shows the photos' share). Restoring is under
+"Restoring photos and uploads".
+
 ## One-time: Secure cookies through the tunnel (Step 5.1)
 
 The app now refuses to start without `SECRET_KEY`, and marks its cookies `Secure` on HTTPS
@@ -56,6 +64,46 @@ curl -s -o /dev/null -D - https://<public-hostname>/login | grep -i set-cookie
 
 Between steps 2 and 3 nothing breaks: the cookies are simply not `Secure` yet, as before.
 Nobody is signed out unless `SECRET_KEY` changes.
+
+## One-time: move work-order photos behind the login (2026-10-28) ⏸
+
+Work-order photos used to be saved in `static/maintenance_photos/`, which the app served to
+anyone with the address. New ones go in `uploads/maintenance_photos/` and every photo is now
+shown only to signed-in users; the old addresses redirect to the login. The app reads both
+folders, so deploying first breaks nothing. Then move the old files across, as the service
+user so they keep their owner. The script never overwrites a file, and a second run finds
+nothing left to do.
+
+```bash
+# 1. Deploy as usual.
+/opt/arcade-tracker/deploy/deploy.sh
+
+# 1b. Archive the uploads by hand this once. The deploy that brings this change runs the
+#     deploy.sh that was on disk before the pull, which doesn't archive them yet; every
+#     deploy after it does.
+cd /opt/arcade-tracker
+/opt/arcade-tracker-venv/bin/python scripts/backup_uploads.py --repo /opt/arcade-tracker \
+  --out "/var/backups/arcade-tracker/arcade_tracker-uploads-$(date -u +%Y%m%dT%H%M%SZ).tar.gz"
+chmod 600 /var/backups/arcade-tracker/arcade_tracker-uploads-*.tar.gz
+
+# 2. Dry run: lists what it would move. Changes nothing.
+cd /opt/arcade-tracker
+runuser -u arcade-tracker -- /opt/arcade-tracker-venv/bin/python scripts/move_maintenance_photos.py
+
+# 3. Move them.
+runuser -u arcade-tracker -- /opt/arcade-tracker-venv/bin/python scripts/move_maintenance_photos.py --apply
+
+# 4. Check: the old folder is empty (or holds only files it said it left alone), and an old
+#    address now answers 302 to /maintenance/photos/<name>, which asks for a login.
+ls /opt/arcade-tracker/static/maintenance_photos | wc -l
+name=$(ls /opt/arcade-tracker/uploads/maintenance_photos | head -1)
+curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' "http://127.0.0.1:5000/static/maintenance_photos/$name"
+curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' "http://127.0.0.1:5000/maintenance/photos/$name"
+```
+
+Leave the empty `static/maintenance_photos/` folder in place: the unit's `ReadWritePaths` names
+it, and systemd won't start the service if it is missing. Admin, Storage counts any photo still
+in the old folder.
 
 ## One-time: alerts (feature step 6)
 
@@ -553,6 +601,27 @@ systemctl restart arcade-tracker
 ```
 
 `deploy.sh` prints the two values to substitute when it fails.
+
+A deploy doesn't touch the uploaded files, so a rollback leaves them alone.
+
+## Restoring photos and uploads
+
+Each deploy's `arcade_tracker-uploads-<stamp>.tar.gz` holds the files as they were when its
+dump of the same stamp was taken; restore the pair together after a loss. Paths in the
+archive are relative to the checkout, so it unpacks straight into it. Files that are on disk
+now but not in the archive are kept (a later cleanup removes any no order uses).
+
+```bash
+ls -1t /var/backups/arcade-tracker/arcade_tracker-uploads-*.tar.gz | head -3     # newest first
+tar -tzf /var/backups/arcade-tracker/arcade_tracker-uploads-<stamp>.tar.gz | head  # what it holds
+systemctl stop arcade-tracker
+tar -xzf /var/backups/arcade-tracker/arcade_tracker-uploads-<stamp>.tar.gz -C /opt/arcade-tracker
+chown -R arcade-tracker:arcade-tracker /opt/arcade-tracker/uploads \
+  /opt/arcade-tracker/static/maintenance_photos /opt/arcade-tracker/static/profile_pics
+systemctl start arcade-tracker
+```
+
+With the database too (the dump of the same stamp), restore it first, as under "Rollback".
 
 ## Reading the logs
 

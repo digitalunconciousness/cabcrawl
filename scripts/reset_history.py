@@ -7,7 +7,8 @@ Deleted:
   - the whole inventory: parts, stock history, low-stock alerts, part requests and their
     history, stock in each place, supplier links and price history, purchase orders, serial
     units and their history, stock counts, reservations, and the parts on maintenance tasks
-  - the work-order photo files in static/maintenance_photos/
+  - the work-order photo files in uploads/maintenance_photos/ (and any not yet moved out of
+    static/maintenance_photos/)
 
 Kept:
   - machines: name, barcode (printed QR labels), coin-door code (printed coin-door labels),
@@ -138,12 +139,16 @@ def backup_problem(path: str | None, now: float | None = None) -> str | None:
     return None
 
 
-def photo_files(static_folder: str) -> list[str]:
-    folder = os.path.join(static_folder, "maintenance_photos")
-    if not os.path.isdir(folder):
-        return []
-    return sorted(os.path.join(folder, name) for name in os.listdir(folder)
-                  if os.path.isfile(os.path.join(folder, name)))
+def photo_files(app) -> list[str]:
+    """Every file in both work-order photo folders (app/services/storage.py)."""
+    from app.services.storage import photo_folders
+
+    out = []
+    for folder in photo_folders(app):
+        if os.path.isdir(folder):
+            out += [os.path.join(folder, name) for name in os.listdir(folder)
+                    if os.path.isfile(os.path.join(folder, name))]
+    return sorted(out)
 
 
 def main(argv: list[str] | None = None, app=None) -> int:
@@ -155,7 +160,7 @@ def main(argv: list[str] | None = None, app=None) -> int:
     app = app or create_app()
     with app.app_context():
         counts = [(label, _count(target)) for label, target in DELETE_ORDER]
-        photos = photo_files(app.static_folder)
+        photos = photo_files(app)
         machines = Game.query.count()
 
         print("Would delete:" if not args.yes else "Deleting:")

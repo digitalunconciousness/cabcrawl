@@ -30,7 +30,7 @@
     <h2 id="have-title">On this order</h2>
     <div class="photos">
       {%- for photo in photos %}
-      <figure><img src="{{ url_for('static', filename='maintenance_photos/' + photo) }}" alt="Photo {{ loop.index }}" loading="lazy">
+      <figure><img src="{{ url_for('maintenance.photo_file', filename=photo) }}" alt="Photo {{ loop.index }}" loading="lazy">
         {%- if current_user.has_role("manager") %}<figcaption>{{ ui.danger_form(url_for("maintenance.delete_maintenance_photo", maintenance_id=r.id, filename=photo), "Remove", "Remove this photo from the work order?") }}</figcaption>{% endif %}
       </figure>
       {%- endfor %}

@@ -294,8 +294,7 @@ def delete_game(game_id):
 
     game = db.get_or_404(Game, game_id)
     name = game.name
-    counts = delete_machine(game, current_app.config["UPLOAD_FOLDER"],
-                            current_app.static_folder)
+    counts = delete_machine(game, current_app.config["UPLOAD_FOLDER"])
     db.session.commit()
     log_security_event("MACHINE_DELETED", user_id=current_user.id,
                        details=f"{name} (id={game_id}): {counts}", level="warning")

@@ -81,6 +81,7 @@ def test_it_deletes_the_history_and_keeps_the_machines(app, floor, sandbox, rese
     keep = {g.id: (g.name, g.barcode, g.report_token, g.location, g.status)
             for g in Game.query.all()}
     users, sessions = User.query.count(), RailSession.query.count()
+    (sandbox / "uploads" / "maintenance_photos" / "maintenance_2_cd.jpg").write_bytes(b"x")
     (sandbox / "static" / "maintenance_photos" / "maintenance_1_ab.jpg").write_bytes(b"x")
 
     assert reset.main(["--yes", "--backup", dump], app=app) == 0
@@ -98,6 +99,7 @@ def test_it_deletes_the_history_and_keeps_the_machines(app, floor, sandbox, rese
                 g.last_ranking_update) == (0, 0.0, 0, 0, None)
     assert User.query.count() == users and RailSession.query.count() == sessions
     assert list((sandbox / "static" / "maintenance_photos").iterdir()) == []
+    assert list((sandbox / "uploads" / "maintenance_photos").iterdir()) == []
 
 
 def test_it_clears_the_inventory_and_keeps_the_places(app, floor, sandbox, reset, dump):

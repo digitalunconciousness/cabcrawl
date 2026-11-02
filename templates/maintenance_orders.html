@@ -53,7 +53,7 @@
         {%- if r.source in ("gatbox", "coindoor") %} · <span class="badge is-info">{{ "bench" if r.source == "gatbox" else "coin door" }}</span>{% endif %}
       </span>
     </span>
-    <span class="row__end">{% if r.priority and r.status in ("Open", "In_Progress") %}{{ ui.status(r.priority) }}{% endif %}{{ ui.status(r.status) }}</span>
+    <span class="row__end">{% if r.priority and r.status in ("Open", "In_Progress") %}{{ ui.status(r.priority|priority) }}{% endif %}{{ ui.status(r.status) }}</span>
   </a></li>
   {%- endfor %}
 </ul>

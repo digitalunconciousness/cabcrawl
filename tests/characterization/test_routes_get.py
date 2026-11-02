@@ -180,6 +180,9 @@ ELSEWHERE = {
     "/u/<code>": "tests/test_serial_units.py: a unit's label, a redirect",
     "/download_backup/<filename>": "test_routes_post.py: needs a backup file on disk",
     "/machine-images/<path:filename>": "test_machine_page.py: needs an uploaded image",
+    "/maintenance/photos/<filename>": "tests/test_photo_storage.py: needs a photo on disk",
+    "/static/maintenance_photos/<filename>": (
+        "tests/test_photo_storage.py: the old photo address, a redirect"),
     "/login": "test_routes_post.py",
     "/logout": "test_routes_post.py",
     "/setup": "test_routes_post.py",

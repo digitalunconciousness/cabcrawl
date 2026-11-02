@@ -27,9 +27,18 @@ OPEN_STATUSES = ("Open", "In_Progress")
 CLOSED_STATUSES = ("Fixed", "Deferred")
 STATUSES = OPEN_STATUSES + CLOSED_STATUSES
 PRIORITIES = ("Low", "Medium", "High", "Critical")
+# GATBOX's deck offers a fifth, "Urgent", which this app stores as "Critical", its top one
+# (api_v1 DEVICE_PRIORITIES). An order that already holds "Urgent" is treated as Critical
+# everywhere: sorted, shown and edited as one (priority_level).
+PRIORITY_ALIASES = {"Urgent": "Critical"}
 URGENCIES = ("Low", "Normal", "High", "Urgent")
 SOURCES = {"gatbox": "GATBOX at the bench", "coindoor": "the coin door", "web": "this app"}
-PRIORITY_RANK = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
+PRIORITY_RANK = {"Critical": 0, "Urgent": 0, "High": 1, "Medium": 2, "Low": 3}
+
+
+def priority_level(value: str | None) -> str | None:
+    """An order's priority as this app knows it: a stored "Urgent" reads as "Critical"."""
+    return PRIORITY_ALIASES.get(value, value) if value else value
 
 MAX_PART_ROWS = 10
 
@@ -186,15 +195,14 @@ def request_parts(record: MaintenanceRecord, rows: list[tuple[int, int, str]],
 
 
 # --- photos --------------------------------------------------------------------------------
+#
+# Saved in uploads/maintenance_photos/ and served only to signed-in users; the folders are
+# app/services/storage.py's (photo_folder, legacy_photo_folder).
 
-def photo_dir(static_folder: str) -> str:
-    return os.path.join(static_folder, "maintenance_photos")
-
-
-def save_photos(record: MaintenanceRecord, files, static_folder: str,
-                on_saved=None) -> tuple[int, list[str]]:
+def save_photos(record: MaintenanceRecord, files, on_saved=None) -> tuple[int, list[str]]:
     """Save uploaded photos for *record*: re-encoded to JPEG, at most MAX_PHOTOS_PER_RECORD per
-    order, while the photo folder is under MAX_TOTAL_STORAGE_MB (both settings, app/config.py).
+    order, while the photos take up less than MAX_TOTAL_STORAGE_MB (both settings,
+    app/config.py).
 
     Returns (saved, problems). A file Pillow cannot read is refused and nothing is attached
     (F-8: it used to be attached anyway, as a broken photo). Files are named .jpg, because
@@ -202,18 +210,15 @@ def save_photos(record: MaintenanceRecord, files, static_folder: str,
     """
     from flask import current_app
 
-    from app.utils.helpers import (
-        allowed_file,
-        compress_and_save_image,
-        get_directory_size,
-    )
+    from app.services.storage import photo_folder, photo_storage_mb
+    from app.utils.helpers import allowed_file, compress_and_save_image
 
     max_photos = current_app.config["MAX_PHOTOS_PER_RECORD"]
     max_mb = current_app.config["MAX_STORAGE_MB"]
-    folder = photo_dir(static_folder)
+    folder = photo_folder()
     os.makedirs(folder, exist_ok=True)
     problems: list[str] = []
-    if get_directory_size(folder) > max_mb:
+    if photo_storage_mb() > max_mb:
         return 0, [f"Photo storage is full ({max_mb} MB). Ask an admin to clean up."]
 
     saved = 0
@@ -240,13 +245,18 @@ def save_photos(record: MaintenanceRecord, files, static_folder: str,
     return saved, problems
 
 
-def delete_photo(record: MaintenanceRecord, filename: str, static_folder: str) -> bool:
-    """Remove one of *record*'s photos. Refuses any name the order does not hold (F-18: the
-    route used to delete whatever filename it was given from the photo folder)."""
+def delete_photo(record: MaintenanceRecord, filename: str) -> bool:
+    """Remove one of *record*'s photos, from whichever folder holds it. Refuses any name the
+    order does not hold (F-18: the route used to delete whatever filename it was given from
+    the photo folder)."""
+    from app.services.storage import photo_folders
+
     if filename not in record.get_photos():
         return False
     record.remove_photo(filename)
-    path = os.path.join(photo_dir(static_folder), filename)
-    if os.path.isfile(path):
-        os.remove(path)
+    if os.path.basename(filename) == filename:
+        for folder in photo_folders():
+            path = os.path.join(folder, filename)
+            if os.path.isfile(path):
+                os.remove(path)
     return True

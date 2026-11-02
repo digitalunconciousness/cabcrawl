@@ -52,8 +52,30 @@ def build_app(tmp: str):
         game = db.session.get(Game, ids["raider"])
         game.mint_report_token()
         ids["report_token"] = game.report_token
+        _photo(app, ids["open_order"])
         db.session.commit()
     return app, ids
+
+
+def _photo(app, order_id: int) -> None:
+    """A drawn (not photographed) picture on the open order, so the work-order pages show one."""
+    from PIL import Image, ImageDraw
+
+    from app.extensions import db
+    from app.models import MaintenanceRecord
+    from app.services.storage import photo_folder
+
+    img = Image.new("RGB", (640, 480), (31, 15, 61))
+    draw = ImageDraw.Draw(img)
+    for x in range(0, 640, 40):
+        draw.line([(x, 0), (x, 480)], fill=(61, 30, 107))
+    draw.rectangle([180, 140, 460, 340], outline=(255, 46, 159), width=6)
+    draw.ellipse([290, 210, 350, 270], fill=(125, 250, 255))
+    name = f"maintenance_{order_id}_5c0ffee5.jpg"
+    folder = photo_folder(app)
+    os.makedirs(folder, exist_ok=True)
+    img.save(os.path.join(folder, name), "JPEG", quality=85)
+    db.session.get(MaintenanceRecord, order_id).add_photo(name)
 
 
 def pages(ids: dict):

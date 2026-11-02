@@ -20,9 +20,9 @@ from datetime import datetime
 from sqlalchemy.orm import joinedload
 
 from app.models import Game, InventoryItem, LowStockAlert, MaintenanceRecord, PlayRecord
+from app.services.work_orders import PRIORITY_RANK as PRIORITY_ORDER
 
 OPEN = ("Open", "In_Progress")
-PRIORITY_ORDER = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
 DOWN = ("Not_Working", "Being_Fixed")
 
 

@@ -40,6 +40,8 @@ services:
       - "5000:5000"
     volumes:
       - uploads:/app/uploads
+      # Work-order photos saved before 2026-10-28; new ones go in uploads. Still read until
+      # moved: docker compose exec cabcrawl python scripts/move_maintenance_photos.py --apply
       - photos:/app/static/maintenance_photos
       - profile-pics:/app/static/profile_pics
     depends_on:

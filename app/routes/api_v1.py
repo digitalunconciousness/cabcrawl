@@ -44,6 +44,13 @@ MAX_NOTE = 2000
 MAX_TECHNICIAN = 50
 MAX_FILE = 64
 NOT_ALLOWED = "machine {slug!r} is not on this device's list"
+# An order's priority (2026-10-28): this app's four, and "Urgent", which GATBOX's deck offers
+# and is stored as "Critical", the top one here. Missing (or empty) is "Medium", as before;
+# anything else rejects the item, the rest of the batch goes through. It used to be stored
+# unchecked, so the work queue could hold a priority no page knew.
+DEVICE_PRIORITIES = {"Low": "Low", "Medium": "Medium", "High": "High", "Critical": "Critical",
+                     "Urgent": "Critical"}
+BAD_PRIORITY = f"priority must be one of {', '.join(DEVICE_PRIORITIES)} (or left out)"
 
 UID = re.compile(r"^[0-9a-f]{32}$")
 OPEN_STATUSES = ("Open", "In_Progress")
@@ -339,6 +346,13 @@ def _ingest_order(device, item, games):
     if technician is not None and (not isinstance(technician, str)
                                    or len(technician) > MAX_TECHNICIAN):
         return rejected(f"technician is text of at most {MAX_TECHNICIAN} characters")
+    raw_priority = item.get("priority")
+    if raw_priority is None or raw_priority == "":
+        priority = "Medium"
+    elif isinstance(raw_priority, str) and raw_priority in DEVICE_PRIORITIES:
+        priority = DEVICE_PRIORITIES[raw_priority]
+    else:
+        return rejected(BAD_PRIORITY)
 
     slug = item.get("machine")
     game = games.get(slug)
@@ -364,7 +378,7 @@ def _ingest_order(device, item, games):
         MaintenanceRecord(
             game_id=game.id,
             issue_description=issue.strip(),
-            priority=item.get("priority") or "Medium",
+            priority=priority,
             technician=item.get("technician"),
             status="Open",
             work_order_type="game",
@@ -454,8 +468,10 @@ def roster():
     return jsonify({
         "contract": CONTRACT,
         "machines": [
+            # model_key: the game a machine is, in GATBOX's library (contract v1 additions).
+            # Not kept here yet, so null, which the contract allows.
             {"slug": m.barcode, "name": m.name, "status": m.status,
-             "location": m.location}
+             "location": m.location, "model_key": None}
             for m in machines
         ],
     })

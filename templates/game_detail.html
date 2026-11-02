@@ -103,7 +103,7 @@
           <span class="row__title">{{ o.issue_description }}</span>
           <span class="row__meta">#{{ o.id }} · {{ o.date_reported.strftime("%Y-%m-%d") if o.date_reported else "—" }}{% if o.technician %} · {{ o.technician }}{% endif %}</span>
         </span>
-        <span class="row__end">{% if o.priority %}{{ ui.status(o.priority) }}{% endif %}{{ ui.status(o.status) }}</span>
+        <span class="row__end">{% if o.priority %}{{ ui.status(o.priority|priority) }}{% endif %}{{ ui.status(o.status) }}</span>
       </a></li>
       {%- endfor %}
     </ul>

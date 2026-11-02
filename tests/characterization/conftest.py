@@ -23,9 +23,9 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 def sandbox(app, tmp_path, monkeypatch):
     """Redirect every directory a view writes to into ``tmp_path``.
 
-    * ``static_folder`` (maintenance photos) and ``root_path`` (profile pictures, the storage
-      page) are pointed at a copy-free scratch tree.
-    * ``UPLOAD_FOLDER`` (game images) likewise.
+    * ``static_folder`` (profile pictures, and work-order photos saved before they moved to
+      uploads/) and ``root_path`` (the storage page) are pointed at a copy-free scratch tree.
+    * ``UPLOAD_FOLDER`` (game images, part photos, work-order photos) likewise.
     * The working directory becomes ``tmp_path``, with ``scripts/`` copied in, because the
       backup views shell out to ``scripts/*.py`` relative to the cwd and those scripts open
       ``instance/arcade.db`` relative to it. The copy there is a synthetic SQLite file.
@@ -38,7 +38,7 @@ def sandbox(app, tmp_path, monkeypatch):
     (static / "maintenance_photos").mkdir(parents=True)
     (static / "profile_pics").mkdir()
     uploads = tmp_path / "uploads"
-    uploads.mkdir()
+    (uploads / "maintenance_photos").mkdir(parents=True)
     (tmp_path / "backups").mkdir()
     (tmp_path / "instance").mkdir()
     shutil.copytree(os.path.join(REPO_ROOT, "scripts"), tmp_path / "scripts",

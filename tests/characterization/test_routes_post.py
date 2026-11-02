@@ -514,7 +514,7 @@ class TestMaintenance:
         assert resp.headers["Location"] == f"/maintenance_detail/{floor['open_order']}"
         photos = fresh(MaintenanceRecord, floor["open_order"]).get_photos()
         assert len(photos) == 1
-        on_disk = sandbox / "static" / "maintenance_photos" / photos[0]
+        on_disk = sandbox / "uploads" / "maintenance_photos" / photos[0]
         assert on_disk.exists()
 
         client.post(f"/delete_maintenance_photo/{floor['open_order']}/{photos[0]}")
@@ -751,7 +751,7 @@ class TestAdmin:
             assert made.role == "operator" and made.must_change_password is True
 
     def test_cleanup_removes_photos_older_than_a_year(self, client, floor, sandbox):
-        photos = sandbox / "static" / "maintenance_photos"
+        photos = sandbox / "uploads" / "maintenance_photos"
         old, new = photos / "old.jpg", photos / "new.jpg"
         old.write_bytes(b"x")
         new.write_bytes(b"x")

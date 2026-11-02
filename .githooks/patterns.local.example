@@ -1,0 +1,11 @@
+# Owner patterns for scripts/privacy_check.sh. Copy this file to .githooks/patterns.local
+# (git-ignored) or ~/.config/gatbox-family/patterns.local, or point CABCRAWL_HOOK_PATTERNS
+# at your copy, and replace the examples with your own values.
+#
+# One extended regex per line (grep -E, case-sensitive). Blank lines and lines starting
+# with # are skipped. A match is never printed, only the file and line where it is.
+#
+# Examples (invented):
+#   Venue Name Here
+#   [Ss]omeone [Ll]astname
+#   tracker\.yourdomain\.example

@@ -131,11 +131,12 @@ def test_record_plays_says_why_not_when_the_counter_is_broken(client, floor):
     assert 'aria-disabled="true">Record plays<span class="btn__sub">Counter not working' in nav
 
 
-def test_the_report_asks_for_a_photo_first_and_keeps_it(client, app, floor):
+def test_the_report_asks_for_a_photo_first_and_keeps_it(client, app, floor, tmp_path):
     import io
 
     from PIL import Image
 
+    app.config["UPLOAD_FOLDER"] = str(tmp_path)       # keep the photo out of the checkout
     login(client, "operator")
     html = client.get(f"/game/{floor['courier']}").get_data(as_text=True)
     form = html[html.index('id="report"'):]
@@ -152,7 +153,7 @@ def test_the_report_asks_for_a_photo_first_and_keeps_it(client, app, floor):
     order = newest(floor["courier"])
     (name,) = order.get_photos()
     assert name.endswith(".jpg")
-    assert os.path.exists(os.path.join(app.static_folder, "maintenance_photos", name))
+    assert os.path.exists(os.path.join(tmp_path, "maintenance_photos", name))
 
 
 # --- a home screen per role --------------------------------------------------------------------

@@ -1,14 +1,15 @@
 # sha256 of every file in this directory, CHECKSUMS itself excepted.
 #
-# A test in this repository and another in GATBOX check their own copy against
-# this list, so the vendored copy at docs/contract/v1/ cannot drift from the
-# original without something going red. Regenerate with:
-#   python scripts/contract_checksums.py --write
+# Contract v1 is owned by GATBOX (docs/contract/v1/) and vendored byte-identical
+# into each hub at contract/v1/. A test in every repository checks its copy
+# against this list, and against any sibling checkout it finds. Edit GATBOX's
+# copy, then regenerate there with:
+#   bash docs/contract/checksums.sh --write
 
-71d6a46e38b4d83c7d3263b2921dec00e8f22b763c8d07b6f9f72b49c3886ee4  README.md
+0e08e2cc409d3970a374ccfcbda95e9efe1f6827686ef4e3d976fa7dc1d9f514  README.md
 1465d5c3ed1ec27ac1ff1585beb49bcabcfe436bd3cc71eb49fff144bdef8da6  examples/ingest-request.json
 94064ff06a9976018d3db91d285435b89f2e4bf010fec99ee406ede00de3907f  examples/ingest-response-duplicate.json
 81990c36ca07e0b98f42ab16ac152647ffb4e40a6c3adc9f334c66135d632a7b  examples/ingest-response.json
 b023b8f2f453c58988b8b59af7477eed67abf5f32fe5bab0df84b3b0e385d0a3  examples/orders-response.json
-068bb2e8eb57941d3164a30d7aa1d17504abcc2ba0d1ebaec1f5020a074b1cd3  examples/roster-response.json
+d80809a46fe299e681ef427f92ed57e1c4d5eed6593a3f9af1252d1e9be61119  examples/roster-response.json
 621cd5b3d4800bb066da3ddaab8f440d1c42199db6e960a34c5041bd0ca52cc0  examples/session-tag-request.json

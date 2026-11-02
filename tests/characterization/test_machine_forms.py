@@ -93,7 +93,7 @@ def test_a_photo_that_is_not_an_image_is_refused(client, floor, sandbox):
         content_type="multipart/form-data")
     assert resp.status_code == 400 and "could not be read" in resp.get_data(as_text=True)
     assert Game.query.filter_by(name="Galaxy Runner").count() == 0
-    assert list((sandbox / "uploads").iterdir()) == []
+    assert [p for p in (sandbox / "uploads").rglob("*") if p.is_file()] == []
 
 
 def test_edit_keeps_the_barcode(client, floor):

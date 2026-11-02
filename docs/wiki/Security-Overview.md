@@ -11,6 +11,8 @@
 - **Pages**: a strict content security policy allows only the site's own scripts. User text is
   escaped everywhere, including in PDFs and CSV exports, where a cell can't become a formula.
 - **Uploads**: photos are re-encoded, so only real images are stored, with a size and pixel limit.
+- **Work-order photos** are shown only to signed-in users. They used to be public files; the old
+  addresses now ask for a login.
   An SVG logo is cleaned and served so it can't run a script.
 - **Cookies**: Secure through the tunnel, HttpOnly, SameSite.
 - **Machines**: each GATBOX device has its own token, can be limited to certain machines, and can

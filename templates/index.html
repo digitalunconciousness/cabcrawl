@@ -57,7 +57,7 @@
           <span class="row__title">{{ o.game.name if o.game else (o.location_description or "General") }}</span>
           <span class="row__meta">{{ o.issue_description }}</span>
         </span>
-        <span class="row__end">{% if o.id in d.mine %}{{ ui.chip("info", "Yours") }}{% endif %}{% if o.priority %}{{ ui.status(o.priority) }}{% endif %}{{ ui.status(o.status) }}</span>
+        <span class="row__end">{% if o.id in d.mine %}{{ ui.chip("info", "Yours") }}{% endif %}{% if o.priority %}{{ ui.status(o.priority|priority) }}{% endif %}{{ ui.status(o.status) }}</span>
       </a></li>
       {%- endfor %}
     </ul>

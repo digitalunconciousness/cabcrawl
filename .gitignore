@@ -1,6 +1,9 @@
 # Environment
 .env
 
+# The owner's privacy-check patterns (scripts/privacy_check.sh); never committed
+.githooks/patterns.local
+
 # Python
 __pycache__/
 *.pyc

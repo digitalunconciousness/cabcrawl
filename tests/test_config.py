@@ -89,7 +89,7 @@ def test_the_app_reads_its_settings_from_here(app):
     assert app.config["MAX_PHOTOS_PER_RECORD"] == 10 and app.config["LOG_LEVEL"] == "INFO"
 
 
-def test_the_photo_limit_setting_is_used(app, client):
+def test_the_photo_limit_setting_is_used(app, client, tmp_path):
     """MAX_PHOTOS_PER_RECORD was in .env.example and read by nothing."""
     import io
 
@@ -100,6 +100,7 @@ def test_the_photo_limit_setting_is_used(app, client):
     from app.services.work_orders import save_photos
 
     app.config["MAX_PHOTOS_PER_RECORD"] = 1
+    app.config["UPLOAD_FOLDER"] = str(tmp_path)       # keep the photos out of the checkout
     order = MaintenanceRecord(issue_description="Synthetic fault")
     db.session.add(order)
     db.session.commit()
@@ -112,10 +113,9 @@ def test_the_photo_limit_setting_is_used(app, client):
 
         return FileStorage(buf, filename="a.png")
 
-    saved, problems = save_photos(order, [png(), png()], app.static_folder)
-    for name in order.get_photos():
-        os.remove(os.path.join(app.static_folder, "maintenance_photos", name))
+    saved, problems = save_photos(order, [png(), png()])
     assert saved == 1 and "at most 1 photos" in problems[0]
+    assert os.listdir(tmp_path / "maintenance_photos") == order.get_photos()
 
 
 def run_check(extra: dict) -> subprocess.CompletedProcess:

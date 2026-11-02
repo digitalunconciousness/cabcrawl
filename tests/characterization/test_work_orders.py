@@ -153,7 +153,7 @@ def test_photos_are_named_for_what_they_are(client, floor, sandbox):
 
 def test_deleting_a_photo_the_order_does_not_hold_is_refused(client, floor, sandbox):
     """F-18 (photos): the route used to delete any filename it was given."""
-    other = sandbox / "static" / "maintenance_photos" / "someone_elses.jpg"
+    other = sandbox / "uploads" / "maintenance_photos" / "someone_elses.jpg"
     other.write_bytes(b"x")
     login(client, "manager")
     client.post(f"/delete_maintenance_photo/{floor['open_order']}/someone_elses.jpg")

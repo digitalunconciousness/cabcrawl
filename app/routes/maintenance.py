@@ -2,6 +2,7 @@
 
 import datetime as dt
 import io
+import os
 from datetime import date, datetime
 
 from flask import (
@@ -13,6 +14,7 @@ from flask import (
     render_template,
     request,
     send_file,
+    send_from_directory,
     url_for,
 )
 from flask_login import current_user, login_required
@@ -41,17 +43,23 @@ def _p(text) -> str:
 
 # ---------------------------------------------------------------------------
 # Optional S3 copy of each photo (USE_CLOUD_STORAGE=true and the AWS_* settings, read and
-# checked in app/config.py). The local copy is always the one the app serves.
+# checked in app/config.py). The local copy, in uploads/maintenance_photos/ behind the
+# login, is always the one the app serves; the S3 copy is a backup and is never linked.
 # ---------------------------------------------------------------------------
+S3_PREFIX = "maintenance_photos/"   # key prefix in the bucket (unchanged by the local move)
+
+
 def _cloud_photos() -> bool:
     return bool(current_app.config.get("CLOUD_PHOTOS"))
 
 
-def _upload_to_cloud(file_data, filename):
-    """Copy a saved photo to S3. The local copy stays the one the app serves."""
+def _upload_to_cloud(file_data, filename) -> str | None:
+    """Copy a saved photo to S3 as a private object (no ACL is set, so the bucket's default,
+    private, applies). Returns the object's key, or None when it wasn't copied."""
     if not _cloud_photos():
         return None
     cfg = current_app.config
+    key = f"{S3_PREFIX}{filename}"
     try:
         import boto3
 
@@ -63,20 +71,18 @@ def _upload_to_cloud(file_data, filename):
         )
         s3_client.put_object(
             Bucket=cfg["AWS_BUCKET_NAME"],
-            Key=f"maintenance_photos/{filename}",
+            Key=key,
             Body=file_data,
             ContentType="image/jpeg",
         )
-        return (
-            f"https://{cfg['AWS_BUCKET_NAME']}.s3.{cfg['AWS_REGION']}.amazonaws.com/"
-            f"maintenance_photos/{filename}"
-        )
+        return key
     except Exception as e:  # noqa: BLE001 -- a failed copy must not lose the local photo
         current_app.logger.warning("Cloud photo copy failed for %s: %s", filename, e)
         return None
 
 
 def _copy_to_cloud(path, filename):
+    """``save_photos``'s on_saved hook: *path* is the file it just wrote in the photo folder."""
     with open(path, "rb") as fh:
         _upload_to_cloud(fh.read(), filename)
 
@@ -176,7 +182,7 @@ def _attach_photos(record) -> None:
     files = [f for f in request.files.getlist("photos") if f and f.filename]
     if not files:
         return
-    saved, problems = save_photos(record, files, current_app.static_folder,
+    saved, problems = save_photos(record, files,
                                   on_saved=_copy_to_cloud if _cloud_photos() else None)
     if saved:
         db.session.commit()
@@ -628,7 +634,6 @@ def maintenance_photos(maintenance_id):
     record = db.get_or_404(MaintenanceRecord, maintenance_id)
     if request.method == "POST":
         saved, problems = save_photos(record, request.files.getlist("photos"),
-                                      current_app.static_folder,
                                       on_saved=_copy_to_cloud if _cloud_photos() else None)
         for problem in problems:
             flash(problem, "warning")
@@ -654,12 +659,51 @@ def delete_maintenance_photo(maintenance_id, filename):
     from app.services.work_orders import delete_photo
 
     record = db.get_or_404(MaintenanceRecord, maintenance_id)
-    if delete_photo(record, filename, current_app.static_folder):
+    if delete_photo(record, filename):
         db.session.commit()
         flash("Photo deleted.", "success")
     else:
         flash("That photo is not on this work order.", "error")
     return redirect(url_for("maintenance.maintenance_detail", record_id=maintenance_id))
+
+
+@maintenance_bp.route("/maintenance/photos/<filename>")
+@login_required
+def photo_file(filename):
+    """A work-order photo, for anyone signed in: whoever can open a work order
+    (maintenance_detail is login-only) can see its photos.
+
+    Only a name the app gives photos is served (storage.PHOTO_NAME), so nothing else in
+    either folder can be fetched through this, and ``<filename>`` can't hold a slash. The
+    new folder is tried first, then the old static one, until
+    scripts/move_maintenance_photos.py has emptied it. ``private`` keeps a shared cache
+    (Cloudflare's, in front of the tunnel) from keeping a copy for the next visitor.
+    """
+    from app.services.storage import photo_path
+
+    path = photo_path(filename)
+    if path is None:
+        abort(404)
+    response = send_from_directory(os.path.dirname(path), filename)
+    response.cache_control.private = True
+    return response
+
+
+@maintenance_bp.route("/static/maintenance_photos/<filename>")
+def legacy_photo(filename):
+    """The address a photo had until 2026-10-28, when Flask's static route served
+    static/maintenance_photos/ to anyone. It now only redirects to photo_file, which asks
+    for a login; the file itself is never sent from here.
+
+    This rule wins over ``/static/<path:filename>``: Werkzeug tries a rule with more fixed
+    text first (tests/test_photo_storage.py checks it). Other spellings of the same folder
+    reach the static view, which refuses them too (app/__init__.py _guard_static_photos).
+    """
+    from app.services.storage import PHOTO_NAME
+
+    if not PHOTO_NAME.match(filename):
+        abort(404)
+    return redirect(url_for("maintenance.photo_file", filename=filename), 302)
 
 
 @maintenance_bp.route("/maintenance_reports")

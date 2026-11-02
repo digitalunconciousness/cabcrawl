@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Check, or regenerate, the checksums of a contract directory.
+"""Check a contract directory against its CHECKSUMS.
 
     python scripts/contract_checksums.py                    # check contract/v1
-    python scripts/contract_checksums.py --write             # regenerate after an edit
-    python scripts/contract_checksums.py --dir path/to/v1    # check a vendored copy
+    python scripts/contract_checksums.py --dir path/to/v1    # check another copy
 
-The contract is owned here and vendored into GATBOX at ``docs/contract/v1/``. Two copies of
-anything drift, so each repository checks its own against this list in its test suite. A
-mismatch means the copies have diverged, and the fix is to decide which is right rather than
-to regenerate blindly.
+Contract v1 is owned by GATBOX (its docs/contract/v1/, since 2026-10-28; this repository owned
+it before) and vendored here byte-identical, as it is into the other hub. Each repository
+checks its copy against the same CHECKSUMS in its tests. A mismatch here means this copy was
+edited: copy the files again from GATBOX, never regenerate CHECKSUMS in this repository
+(GATBOX's docs/contract/checksums.sh does that, there). Check only; no --write.
 """
 from __future__ import annotations
 
@@ -16,14 +16,6 @@ import argparse
 import hashlib
 import pathlib
 import sys
-
-HEADER = """# sha256 of every file in this directory, CHECKSUMS itself excepted.
-#
-# A test in this repository and another in GATBOX check their own copy against
-# this list, so the vendored copy at docs/contract/v1/ cannot drift from the
-# original without something going red. Regenerate with:
-#   python scripts/contract_checksums.py --write
-"""
 
 
 def digests(root: pathlib.Path) -> dict[str, str]:
@@ -63,28 +55,15 @@ def compare(root: pathlib.Path) -> list[str]:
     return problems
 
 
-def write(root: pathlib.Path) -> None:
-    lines = [HEADER]
-    for name, digest in digests(root).items():
-        lines.append(f"{digest}  {name}")
-    (root / "CHECKSUMS").write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--dir", default="contract/v1", help="the contract directory")
-    p.add_argument("--write", action="store_true", help="regenerate CHECKSUMS")
     args = p.parse_args()
 
     root = pathlib.Path(args.dir)
     if not root.is_dir():
         print(f"no such directory: {root}", file=sys.stderr)
         return 2
-
-    if args.write:
-        write(root)
-        print(f"wrote {root / 'CHECKSUMS'} ({len(digests(root))} files)")
-        return 0
 
     problems = compare(root)
     if problems:

@@ -17,6 +17,9 @@
 
   <meter class="meter" min="0" max="{{ s.max_mb }}" low="{{ s.max_mb * 0.7 }}" high="{{ s.max_mb * 0.9 }}" optimum="0" value="{{ '%.1f'|format(s.size_mb) }}" aria-label="Photo storage used">{{ '%.0f'|format(s.percent) }}%</meter>
   <p class="dim">When storage is full, new photos are refused. Uploads are resized and saved as JPEG, so most photos are small.</p>
+  {%- if s.unmoved %}
+  <p class="dim">{{ s.unmoved }} photo file{{ "" if s.unmoved == 1 else "s" }} still in the old folder (static/maintenance_photos). They are shown only to signed-in users already; moving them is a server step in the runbook (scripts/move_maintenance_photos.py).</p>
+  {%- endif %}
 
   <section class="card" aria-labelledby="cleanup-title">
     <h2 id="cleanup-title">Clean up</h2>

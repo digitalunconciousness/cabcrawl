@@ -51,6 +51,7 @@ def create_app() -> Flask:
     install_history()
     install_alerts()
     _register_blueprints(app)
+    _guard_static_photos(app)
     _register_context_processors(app)
     _register_error_handlers(app)
     _register_after_request(app)
@@ -105,11 +106,18 @@ def _configure_app(app: Flask) -> Settings:
 
 
 def _create_directories(app: Flask) -> None:
-    """Ensure all required directories exist."""
+    """Ensure all required directories exist.
+
+    Work-order photos are saved in uploads/maintenance_photos/. static/maintenance_photos/
+    is where they were saved until 2026-10-28; it is still read until its files are moved,
+    and it stays in this list because the systemd unit names it in ReadWritePaths, which
+    refuses to start the service if it is missing.
+    """
     base_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     directories = [
         os.path.join(base_dir, "instance"),
         app.config["UPLOAD_FOLDER"],
+        os.path.join(app.config["UPLOAD_FOLDER"], "maintenance_photos"),
         os.path.join(base_dir, "backups"),
         os.path.join(base_dir, "logs"),
         os.path.join(base_dir, "static", "maintenance_photos"),
@@ -182,6 +190,37 @@ def _register_blueprints(app: Flask) -> None:
                 "event": "BLUEPRINT_MISSING", "module": module_path, "error": str(exc)}})
 
 
+def _guard_static_photos(app: Flask) -> None:
+    """Never let the public static route serve a work-order photo.
+
+    Photos were saved in static/maintenance_photos/ until 2026-10-28, and files may still be
+    there until scripts/move_maintenance_photos.py has run. ``/static/maintenance_photos/<f>``
+    itself is a rule of its own that redirects to the login-protected address
+    (maintenance.legacy_photo), but the static route resolves other spellings of the same
+    folder too (``/static/css/../maintenance_photos/<f>``, ``/static/./maintenance_photos/<f>``).
+    Whatever reaches the static view and lands in that folder gets the same redirect, or a
+    404 for a name that isn't a photo's.
+    """
+    import posixpath
+
+    from flask import abort, redirect, url_for
+
+    from app.services.storage import PHOTO_NAME, PHOTO_SUBDIR
+
+    serve_static = app.view_functions["static"]
+
+    def static(filename: str):
+        parts = posixpath.normpath("/" + filename.replace("\\", "/")).lstrip("/").split("/")
+        if parts and parts[0].lower() == PHOTO_SUBDIR:
+            name = "/".join(parts[1:])
+            if PHOTO_NAME.match(name):
+                return redirect(url_for("maintenance.photo_file", filename=name), 302)
+            abort(404)
+        return serve_static(filename=filename)
+
+    app.view_functions["static"] = static
+
+
 def _register_context_processors(app: Flask) -> None:
     """Register Jinja2 context processors for global template helpers."""
     from datetime import date as _date
@@ -206,11 +245,12 @@ def _register_context_processors(app: Flask) -> None:
     @app.context_processor
     def utility_processor() -> dict:
         def get_cloud_url(filename: str) -> str:
-            """A maintenance photo's URL: always this server's copy. The S3 copy is a backup;
-            serving from it would also break the Content-Security-Policy (img-src 'self').
-            This always returned the local URL in practice, because it read a config key that
-            was never set (Step 5.6 made that explicit)."""
-            return _url_for("static", filename=f"maintenance_photos/{filename}")
+            """A maintenance photo's URL: always this server's copy, behind the login
+            (maintenance.photo_file). The S3 copy is a backup; serving from it would also
+            break the Content-Security-Policy (img-src 'self'). This always returned the
+            local URL in practice, because it read a config key that was never set (Step 5.6
+            made that explicit)."""
+            return _url_for("maintenance.photo_file", filename=filename)
 
         return {"today": _date.today, "get_cloud_url": get_cloud_url}
 

@@ -1,0 +1,9 @@
+# sha256 of every file in this directory, CHECKSUMS itself excepted.
+#
+# The agent rules are owned by GATBOX (docs/agents/) and vendored byte-identical
+# into cabcrawl and the tech tracker at docs/agents/. A test in every repository
+# checks its copy against this list, and against any sibling checkout it finds.
+# Edit GATBOX's copy, then regenerate there with:
+#   (cd docs/agents && sha256sum RULES.md)   and replace the line below.
+
+20d05daa2826891102e2095d61cf24f956f4eb72b0a198b7a8e9601d793cb99c  RULES.md

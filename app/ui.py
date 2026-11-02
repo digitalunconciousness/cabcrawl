@@ -95,6 +95,9 @@ def asset(filename: str) -> str:
 
 
 def register(app: Flask) -> None:
+    from app.services.work_orders import priority_level
+
     app.add_template_filter(status_tone, "tone")
     app.add_template_filter(status_label, "status_label")
+    app.add_template_filter(priority_level, "priority")    # a stored "Urgent" is Critical
     app.add_template_global(asset, "asset")

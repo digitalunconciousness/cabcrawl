@@ -5,13 +5,15 @@
       "slug": "widget-wars",
       "name": "Widget Wars",
       "status": "Working",
-      "location": "Floor"
+      "location": "Floor",
+      "model_key": "widget-wars"
     },
     {
       "slug": "pin-sprocket",
       "name": "Sprocket",
       "status": "Needs Repair",
-      "location": "Floor"
+      "location": "Floor",
+      "model_key": null
     }
   ]
 }

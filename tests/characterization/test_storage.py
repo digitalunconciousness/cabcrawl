@@ -23,7 +23,7 @@ def test_cleanup_keeps_photos_a_work_order_still_uses(client, floor, sandbox):
     from app.extensions import db
     from app.models import MaintenanceRecord
 
-    photos = sandbox / "static" / "maintenance_photos"
+    photos = sandbox / "uploads" / "maintenance_photos"
     kept, gone, recent = photos / "kept.jpg", photos / "gone.jpg", photos / "recent.jpg"
     for p in (kept, gone, recent):
         p.write_bytes(b"x")
@@ -41,7 +41,7 @@ def test_the_storage_page_counts_what_cleanup_would_remove(client, floor, sandbo
     from app.extensions import db
     from app.models import MaintenanceRecord
 
-    photos = sandbox / "static" / "maintenance_photos"
+    photos = sandbox / "uploads" / "maintenance_photos"
     for name in ("on-order.jpg", "orphan-old.jpg", "orphan-new.jpg"):
         (photos / name).write_bytes(b"x" * 1024)
     _old(photos / "orphan-old.jpg")
@@ -54,7 +54,7 @@ def test_the_storage_page_counts_what_cleanup_would_remove(client, floor, sandbo
 
 
 def test_managers_no_longer_clean_up_photos(client, floor, sandbox):
-    photo = sandbox / "static" / "maintenance_photos" / "orphan.jpg"
+    photo = sandbox / "uploads" / "maintenance_photos" / "orphan.jpg"
     photo.write_bytes(b"x")
     _old(photo)
     login(client, "manager")
