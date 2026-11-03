@@ -1,0 +1,21 @@
+# sha256 of every file in .claude/skills/antislop*, paths relative to .claude/skills/.
+#
+# A pinned copy of anti-slop (see PROVENANCE.md), owned by GATBOX and byte-identical in all three
+# repositories. A test in each checks its copy against this list, refuses any allowed-tools line,
+# and compares the copy with any sibling checkout. Rewrite it only when updating the copy:
+#   (cd .claude/skills && find antislop* -type f | LC_ALL=C sort | xargs sha256sum)
+
+1b385f1adafe957f7496094b1ff544c861d0a2b6e568af78435d6bb386ee76cc  antislop-code/SKILL.md
+378c86e29d21892eb4b9240afe04e8afb1fbf865d5ea99004672a4f3ab75befc  antislop-copywriting/SKILL.md
+c122223ac43e86421958e18623979942c21b642951e2e3736dcb63eff13587c3  antislop-human/LICENSE-web-quality-skills
+b1bb979a426eb28178bedaa8202542f7572c4c89f122b1bcd6ee010d83984791  antislop-human/SKILL.md
+393e6433d120632aa11184792a16cd7b325924dbc9993477825d9aa67fdbfe6e  antislop-human/contrast-check.py
+4cb6276a237fbe05616b53688075461732454365eb7674d732f7197dddb14fff  antislop-human/references/A11Y-PATTERNS.md
+409ac9e24007f09f3704f890585c880cdd66780e9f14274b1a0e0c4557672330  antislop-human/references/WCAG.md
+d1032652d0c51d137e366126f754d39d8758cbb3195da54c1d8de97612e2050e  antislop-layoutmobile/SKILL.md
+c122223ac43e86421958e18623979942c21b642951e2e3736dcb63eff13587c3  antislop-ui/LICENSE-web-quality-skills
+87c14440ba593971345907f24036ebf660a72ede1694d629d41c21b262d23b0a  antislop-ui/SKILL.md
+782bc99ba1fc68e25aabb396967468ec8cb7ea33cd681bccf4b7b04a679acf23  antislop-ui/references/CORE-WEB-VITALS.md
+f9a4c8d71a6e2ddf5ad0e46a11553eb188617c36f0bfb331e3d3930aecf772a2  antislop-ui/references/WEB-BASELINE.md
+20d5106afb04e50d3a618bae7ba6352cab2748b0111c521f98f2d998eb7ffda7  antislop/SKILL.md
+ad6ec83aba730d26aa31a30f607c1ef43809974e6ed17c9191d80304da10b950  antislop/VERSION
