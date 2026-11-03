@@ -1,0 +1,47 @@
+{
+  "contract": "v1",
+  "device": "a1b2c3d4e5f6",
+  "items": [
+    {
+      "kind": "rom_dump",
+      "uid": "24c8c559b79690c3effdf7b3fabcedb1",
+      "machine": "widget-wars",
+      "label": "U10",
+      "part": "27C020@DIP32",
+      "size": 32,
+      "crc32": "91267e8a",
+      "sha1": "ae5bd8efea5322c4d9986d06680a781392f9a642",
+      "sha256": "630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd",
+      "romident": {
+        "match": true,
+        "matches": [
+          {
+            "set": "widgetw",
+            "rom": "ww-u10.bin"
+          }
+        ]
+      },
+      "reads": 2,
+      "identical": true,
+      "blank": false,
+      "created": 1790000300.0,
+      "clock": {
+        "source": "ntp"
+      }
+    },
+    {
+      "kind": "burn",
+      "uid": "4e8659bbb33eaa4dc7ea7263b8d4d710",
+      "machine": "widget-wars",
+      "image": "630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd",
+      "image_sha1": "ae5bd8efea5322c4d9986d06680a781392f9a642",
+      "part": "27C020@DIP32",
+      "size": 32,
+      "state": "verified",
+      "vpp": "13V",
+      "blank_ok": true,
+      "error": null,
+      "created": 1790000400.0
+    }
+  ]
+}
