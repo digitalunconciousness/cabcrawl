@@ -106,6 +106,9 @@ TABLE_INTRODUCED_BY = {
     "stock_count_line": "b3c4d5e6f7a8",
     "part_reservation": "c4d5e6f7a8b9",
     "task_part": "c4d5e6f7a8b9",
+    "rom_file": "e5f6a7b8c9d0",
+    "rom_dump": "e5f6a7b8c9d0",
+    "rom_burn": "e5f6a7b8c9d0",
 }
 
 # The revision that precedes each, i.e. what to stamp so `upgrade` will apply it.
@@ -134,6 +137,7 @@ PREDECESSOR = {
     "a2b3c4d5e6f7": "f1a2b3c4d5e6",
     "b3c4d5e6f7a8": "a2b3c4d5e6f7",
     "c4d5e6f7a8b9": "b3c4d5e6f7a8",
+    "e5f6a7b8c9d0": "c4d5e6f7a8b9",
 }
 
 # Every index app/models/indexes.py declares came from this revision.
@@ -147,7 +151,7 @@ ORDER = ["5a026e6869ec", "ebead5244def", "3e5463d29981", "e7582856b8aa",
          "b6c7d8e9f0a1", "c8d9e0f1a2b3", "d9e0f1a2b3c4",
          "e0f1a2b3c4d5", "f1a2b3c4d5e6",
          "a2b3c4d5e6f7", "b3c4d5e6f7a8",
-         "c4d5e6f7a8b9"]
+         "c4d5e6f7a8b9", "e5f6a7b8c9d0"]
 
 
 def check_encoding(db) -> dict | None:

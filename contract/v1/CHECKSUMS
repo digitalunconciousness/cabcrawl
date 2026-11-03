@@ -6,7 +6,7 @@
 # copy, then regenerate there with:
 #   bash docs/contract/checksums.sh --write
 
-5cb2f425a67bb57e47516fb9a7b9f1f38aaa12fb3bf8d47d2691a31932cac48d  README.md
+d14e3bfaf761eadc656256f4fd73d9e9307c30755eaa1575d750972f1cccacd6  README.md
 9050e3f47036398bcacbb4fd9407e845789364b36404eac19c176013be137902  examples/files-begin-request.json
 35ed124e47f8a701178f3828e02ac40f8a560abcf03b8fa8d650e5a055864089  examples/files-begin-response-stored.json
 15bd5d0dddd3b5f81210b887710161bfa709d88832ad43e183fc8a8d03c08fe3  examples/files-begin-response.json

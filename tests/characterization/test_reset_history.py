@@ -136,7 +136,7 @@ def test_nothing_is_left_pointing_at_a_deleted_row(reset):
 
     deleted = {getattr(t, "__table__", t).name for _label, t in reset.DELETE_ORDER}
     # Kept on purpose: the machine timeline (its work-order link is cleared first).
-    kept = {"game_event"}
+    kept = {"game_event", "rom_dump", "rom_burn"}
     for table in db.metadata.sorted_tables:
         if table.name in deleted or table.name in kept:
             continue
@@ -157,3 +157,32 @@ def test_the_tracker_works_afterwards(app, client, floor, sandbox, reset, dump):
     for url in ("/", "/games", f"/game/{floor['raider']}", "/maintenance_orders",
                 "/inventory/", "/reports"):
         assert client.get(url).status_code == 200, url
+
+
+def test_rom_dumps_and_burns_are_kept_and_no_longer_point_at_a_deleted_order(app, floor, sandbox,
+                                                                         reset, dump):
+    """GATBOX's ROM dumps and burns are evidence about a machine, like its rail history: the
+    reset keeps them and clears the link to the work order it deletes (SQLite doesn't enforce
+    the foreign key's ON DELETE SET NULL, so the script does it)."""
+    from app.extensions import db
+    from app.models import Device, MaintenanceRecord, RomBurn, RomDump, RomFile
+
+    order = MaintenanceRecord.query.first()
+    device = Device.query.first()
+    image = RomFile(sha256="ab" * 32, size_bytes=32)
+    db.session.add(image)
+    db.session.flush()
+    common = {"device_id": device.id, "game_id": order.game_id, "rom_file_id": image.id,
+              "maintenance_record_id": order.id, "part": "27C020@DIP32", "size_bytes": 32}
+    db.session.add_all([
+        RomDump(uid="1" * 32, label="U10", crc32="0" * 8, sha1="1" * 40, reads=2, identical=True,
+                taken=order.date_reported, **common),
+        RomBurn(uid="2" * 32, image_sha1="1" * 40, state="verified", burned=order.date_reported,
+                **common)])
+    db.session.commit()
+
+    assert reset.main(["--yes", "--backup", dump], app=app) == 0
+    db.session.expire_all()
+    assert (RomDump.query.count(), RomBurn.query.count(), RomFile.query.count()) == (1, 1, 1)
+    assert RomDump.query.one().maintenance_record_id is None
+    assert RomBurn.query.one().maintenance_record_id is None

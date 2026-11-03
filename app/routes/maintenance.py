@@ -265,12 +265,14 @@ def maintenance_orders():
 @login_required
 def maintenance_detail(record_id):
     """One work order: the issue, the work log, parts, photos, traces and requests."""
+    from app.services import rom_ingest
     from app.services.work_orders import SOURCES, load_order
 
     record = load_order(record_id)
     if record is None:
         abort(404)
-    return render_template("maintenance_detail.html", record=record, sources=SOURCES)
+    return render_template("maintenance_detail.html", record=record, sources=SOURCES,
+                           roms=rom_ingest.for_order(record.id))
 
 
 def _float(name, errors, label):

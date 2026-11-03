@@ -80,6 +80,10 @@ def _configure_app(app: Flask) -> Settings:
     # Uploads ------------------------------------------------------
     app.config["UPLOAD_FOLDER"] = os.path.join(base_dir, "uploads")
     app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB
+    # ROM images from GATBOX (contract v1, capability roms), by hash. Inside uploads/, which the
+    # service may write and the uploads backup already archives, and a folder deep: the one route
+    # that serves from uploads/ takes a bare file name, so nothing here has a URL.
+    app.config["ROM_FILES_DIR"] = os.path.join(app.config["UPLOAD_FOLDER"], "rom_files")
 
     # CSRF ---------------------------------------------------------
     # Enforced on every POST (Flask-WTF's default; it was switched off until 2026-10-08).
@@ -173,6 +177,7 @@ def _register_blueprints(app: Flask) -> None:
         ("app.routes.admin", "admin_bp"),
         ("app.routes.api_v1", "api_v1_bp"),
         ("app.routes.rails", "rails_bp"),
+        ("app.routes.roms", "roms_bp"),
         ("app.routes.report", "report_bp"),
         ("app.routes.styleguide", "styleguide_bp"),
     ]

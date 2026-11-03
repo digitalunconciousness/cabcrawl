@@ -28,7 +28,10 @@ The ROM-image part (capability `roms`, added 2026-11-03) works the same way. A h
 `files-begin-request.json`, one part and a finish, comparing each reply with the matching
 `files-*-response.json`; then posts `rom-ingest-request.json` twice and compares the replies
 with `rom-ingest-response.json` and `rom-ingest-response-duplicate.json`.
-`machine-dumps-response.json` is illustrative.
+`machine-dumps-response.json` is illustrative. The two ROM uids hash the machine's slug
+(`rom_dump` and `burn`, below), so a hub whose test machine is not called `widget-wars` (its
+machines have tags of its own) substitutes its slug and recomputes those two uids by the rule,
+and expects the replies to carry the recomputed uids.
 
 ## Endpoints
 

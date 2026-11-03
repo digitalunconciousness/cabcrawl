@@ -1,0 +1,30 @@
+{#- ROM dumps and burns GATBOX sent for a machine or an order. `roms` is (dumps, burns). Operators
+    and up: the same people the download route lets in. -#}
+{%- import "ui.html" as ui -%}
+{%- set dumps, burns = roms %}
+{%- if (dumps or burns) and current_user.has_role("operator") %}
+<section class="card" aria-labelledby="roms-title">
+  <h2 id="roms-title">ROM dumps and burns</h2>
+  <ul class="rows">
+    {%- for d in dumps %}
+    <li><a class="row" href="{{ url_for('roms.dump_image', dump_id=d.id) }}" download>
+      <span class="row__main"><span class="row__title">Dump {{ d.label }} · {{ d.part }}</span>
+        <span class="row__meta">{{ "{:,}".format(d.size_bytes) }} bytes · SHA-1 {{ d.sha1 }} · CRC32 {{ d.crc32 }} · read {{ d.reads }} times, identical · {{ d.taken.strftime("%Y-%m-%d %H:%M") }} UTC
+          {%- if d.romident and d.romident.match %} · {% for m in d.romident.matches[:3] %}{{ m.set }}/{{ m.rom }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
+          {%- if d.blank %} · blank{% endif %} · download the image</span></span>
+      <span class="row__end">{% if d.romident is none %}{{ ui.chip("muted", "MAME didn't run") }}{% elif d.romident.match %}{{ ui.chip("ok", "MAME match") }}{% else %}{{ ui.chip("warn", "No MAME match") }}{% endif %}</span>
+    </a></li>
+    {%- endfor %}
+    {%- for b in burns %}
+    <li><a class="row" href="{{ url_for('roms.burn_image', burn_id=b.id) }}" download>
+      <span class="row__main"><span class="row__title">Burn · {{ b.part }}</span>
+        <span class="row__meta">{{ "{:,}".format(b.size_bytes) }} bytes · image SHA-1 {{ b.image_sha1 }} · {{ b.burned.strftime("%Y-%m-%d %H:%M") }} UTC
+          {%- if b.vpp %} · VPP {{ b.vpp }}{% endif %}
+          {%- if b.blank_ok is not none %} · blank check {{ "passed" if b.blank_ok else "failed" }}{% endif %}
+          {%- if b.error %} · {{ b.error }}{% endif %} · download the image</span></span>
+      <span class="row__end">{{ ui.chip("ok" if b.state == "verified" else "fault", b.state) }}</span>
+    </a></li>
+    {%- endfor %}
+  </ul>
+</section>
+{%- endif %}

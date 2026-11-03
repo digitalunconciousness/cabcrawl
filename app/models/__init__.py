@@ -35,6 +35,7 @@ from app.models.parts import (
     UnitEvent,
 )
 from app.models.rail import RailSession, RailSessionTag, Reading
+from app.models.rom import BURN_STATES, RomBurn, RomDump, RomFile
 from app.models.stock import StockLevel, StockPlace
 from app.models.upkeep import MaintenanceTask
 from app.models.user import User
@@ -69,8 +70,12 @@ __all__ = [
     "InventoryRequestHistory",
     "item_game_compatibility",
     "Device",
+    "BURN_STATES",
     "RailSession",
     "RailSessionTag",
+    "RomBurn",
+    "RomDump",
+    "RomFile",
     "Reading",
     "GameEvent",
     "MaintenanceTask",

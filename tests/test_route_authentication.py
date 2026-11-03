@@ -20,6 +20,8 @@ TOKEN_AUTHORISED = {
         "deliberately not stacked on @login_required, which would 302 a machine."
     ),
     "/api/v1/machines/<slug>/orders": "the same device bearer token",
+    "/api/v1/machines/<slug>/dumps": "the same device bearer token (ROM images, capability roms)",
+    "/api/v1/files/<sha256>": "the same device bearer token (a ROM image read back)",
     "/report/<token>": (
         "Phase 2.5: the coin-door capability token *is* the URL. Someone who opened the door "
         "read it off a QR, and an unknown token is a 404 -- there is no session to have."
