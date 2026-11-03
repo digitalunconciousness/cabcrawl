@@ -82,6 +82,9 @@ GATBOX.
   - contract v1: `docs/contract/v1/` in GATBOX, `contract/v1/` in the hubs, with `CHECKSUMS`;
   - these rules: `docs/agents/RULES.md`, with `CHECKSUMS`;
   - the privacy check and hook: `scripts/privacy_check.sh` and `.githooks/pre-push`;
+  - the antislop skills: `.claude/skills/antislop*` and `docs/antislop/` (its licence, where it
+    came from, what was changed, and `CHECKSUMS`), a pinned copy of someone else's rules for
+    agents, updated only by a deliberate change that reads upstream's diff first;
   - from phase A2, the themes: `design/`, with `CHECKSUMS`.
 
   A change to one lands in all the PRs together, and each repository's tests compare its copy
@@ -101,6 +104,11 @@ GATBOX.
   Numbers, tags, slugs and hashes are set in monospace.
 - **Touch targets:** at least 44 px on phones and 56 px on the 7".
 - **Printed labels and customer documents stay print-first.**
+- **antislop filters UI, copy and code comments,** in all three repositories (the skills are in
+  `.claude/skills/`, §4). The mode is **during**: apply the rules while working, don't ask which
+  mode, and don't write audit files. `DESIGN.md` at each repository's root is the owner's
+  direction. Synthwave is deliberate there, so what it lists as deliberate is kept without
+  asking again. **Ledger and Graphite get no such exemption:** antislop applies to them in full.
 - **Each app serves its own fonts.** No CDN; plain HTML, CSS and JS, no framework, no build step.
 
 ## 6. The privacy check

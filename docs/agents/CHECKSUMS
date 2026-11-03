@@ -6,4 +6,4 @@
 # Edit GATBOX's copy, then regenerate there with:
 #   (cd docs/agents && sha256sum RULES.md)   and replace the line below.
 
-20d05daa2826891102e2095d61cf24f956f4eb72b0a198b7a8e9601d793cb99c  RULES.md
+f5c004a2b4d73c092c044411f20e4cddd819793077755016f5543182bd319150  RULES.md

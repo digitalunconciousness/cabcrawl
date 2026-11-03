@@ -85,3 +85,4 @@ scripts/privacy_check.sh master..HEAD              # what a push would publish (
 - Ask rather than guess when a decision belongs to the owner.
 - Say plainly what was and wasn't checked.
 - Use invented data in every test, screenshot and doc.
+- UI, copy and code-comment work also follows the antislop skills in `.claude/skills/` (RULES.md §5), with `DESIGN.md` as the direction (Synthwave is deliberate; Ledger and Graphite are not exempt).
