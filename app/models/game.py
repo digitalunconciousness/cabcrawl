@@ -41,6 +41,11 @@ class Game(db.Model):
     times_in_top_10: int = db.Column(db.Integer, default=0)
     last_ranking_update: date | None = db.Column(db.Date, nullable=True)
 
+    # The game this machine is, in GATBOX's library (contract v1's roster `model_key`; the library's
+    # own key, permanent). Nullable: a machine the library doesn't know has no game section. Set by
+    # scripts/link_model_keys.py from the seed plan, and editable by managers on the machine page.
+    model_key: str | None = db.Column(db.String(60), nullable=True)
+
     # The secret a coin-door label carries, so a request can be filed with no login by
     # whoever can open the door. **Never barcode.** barcode is the public identifier -- the
     # roster slug, printed on the cabinet labels, shared with GATBOX -- and the slugs are

@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% import "ui.html" as ui %}
+{% block title %}Library{% endblock %}
+
+{% block page_head %}
+{{ ui.page_head("Library", sub="The games these machines are, copied from the GATBOX archive. Read-only here: edit a game at the archive.") }}
+{% endblock %}
+
+{% block content %}
+{%- if state and state.refused %}
+{{ ui.empty("The archive turned this application away", text="The reader token was refused, so nothing new has been read. The owner issues a new token at the archive and puts it in LIBRARY_ARCHIVE_TOKEN.") }}
+{%- elif state and state.error %}
+{{ ui.empty("The archive could not be reached", text="The last attempt failed (" ~ state.error ~ "). What is shown is the copy from " ~ library_ago(held) ~ ". It tries again every ten minutes.") }}
+{%- elif held %}
+<p class="dim">Refreshed {{ library_ago(held) }} · {{ state.records }} record{{ "" if state.records == 1 else "s" }} held.</p>
+{%- endif %}
+
+{%- set used = games|selectattr("machines")|list %}
+{%- set unused = games|rejectattr("machines")|list %}
+{%- if not games %}
+{%- if not (state and (state.refused or state.error)) %}
+{{ ui.empty("Nothing has been read yet", text="No machine is linked to a game that the archive has sent. Link a machine on its page, or wait for the next pull, which runs every ten minutes.") }}
+{%- endif %}
+{%- else %}
+<section aria-labelledby="used-title">
+  <h2 id="used-title">On this floor</h2>
+  {%- if used %}
+  <ul class="rows">
+    {%- for g in used %}
+    <li><a class="row" href="{{ url_for('library.game_page', key=g.key) }}">
+      <span class="row__main"><span class="row__title">{{ g.title }}</span>
+        <span class="row__meta">{{ [g.mfr, g.year, {"video": "Video", "pinball": "Pinball"}.get(g.kind), (g.documents ~ (" document" if g.documents == 1 else " documents")) if g.documents,
+            g.machines|map(attribute="name")|join(", ")]|select|join(" · ") }}</span></span>
+      <span class="row__end">
+        {%- if g.limits %}{{ ui.chip("ok" if g.confirmed == g.limits else "warn", g.confirmed ~ " of " ~ g.limits ~ " limits confirmed") }}
+        {%- else %}{{ ui.chip("muted", "No limits") }}{% endif %}
+      </span>
+    </a></li>
+    {%- endfor %}
+  </ul>
+  {%- else %}
+  {{ ui.empty("No machine here is linked to a held game") }}
+  {%- endif %}
+</section>
+
+{%- if unused %}
+<section aria-labelledby="unused-title">
+  <h2 id="unused-title">Held, but no machine names it</h2>
+  <p class="dim">These stay as they were last read. {% if current_user.has_role("manager") %}A manager can clear one to free its manuals.{% endif %}</p>
+  <ul class="rows">
+    {%- for g in unused %}
+    <li class="row">
+      <span class="row__main"><span class="row__title"><a href="{{ url_for('library.game_page', key=g.key) }}">{{ g.title }}</a></span>
+        <span class="row__meta">{{ [g.mfr, g.year, (g.documents ~ (" document" if g.documents == 1 else " documents")) if g.documents]|select|join(" · ") }}</span></span>
+      {%- if current_user.has_role("manager") %}
+      <span class="row__end">{{ ui.danger_form(url_for("library.clear_game", key=g.key), "Clear", "Clear " ~ g.title ~ "? Its records and manuals are removed from this copy.") }}</span>
+      {%- endif %}
+    </li>
+    {%- endfor %}
+  </ul>
+</section>
+{%- endif %}
+{%- endif %}
+{% endblock %}

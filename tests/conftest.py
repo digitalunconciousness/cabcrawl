@@ -60,3 +60,30 @@ def _reset_rate_limits():
     if getattr(limiter, "_storage", None) is not None:
         limiter.reset()
     yield
+
+
+# --- the game library (contract/library-v1/): a stub archive and an application set up to read it ------------
+
+@pytest.fixture()
+def stub():
+    from tests.library_stub import Server
+
+    server = Server()
+    yield server
+    server.stop()
+
+
+@pytest.fixture()
+def deck(app, stub, tmp_path):
+    """The application, set up to read the stub, with one machine that names widget-wars and one that names nothing."""
+    from app.extensions import db
+    from app.models import Game
+    from tests.library_stub import TOKEN
+
+    app.config.update(LIBRARY_URL=stub.url, LIBRARY_TOKEN=TOKEN, LIBRARY_ACCESS_ID="", LIBRARY_ACCESS_SECRET="",
+                      LIBRARY_FILES_DIR=str(tmp_path / "library_files"), LIBRARY_MAX_FILE=100 * 1024 * 1024)
+    ww = Game(name="Widget Wars", barcode="widget-wars-1", status="Working", location="Floor", model_key="widget-wars")
+    other = Game(name="Sprocket", barcode="pin-sprocket", status="Working", location="Floor")
+    db.session.add_all([ww, other])
+    db.session.commit()
+    return {"stub": stub, "archive": stub.archive, "machine": ww, "other": other}

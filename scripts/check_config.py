@@ -41,6 +41,7 @@ def main() -> int:
     print(f"photos       : at most {s.max_photos_per_record} per order, {s.max_storage_mb} MB in all"
           f"{', copied to S3' if s.cloud_photos else ''}")
     print(f"EASYPOST     : {is_set(s.easypost_api_key)}")
+    print(f"library      : {s.library_url + (' via Access' if s.library_access_id else '') if s.library_url else 'no archive configured'}")
     for warning in s.warnings:
         print(f"WARNING: {warning}")
     print("configuration: OK")

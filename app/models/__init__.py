@@ -19,6 +19,7 @@ from app.models.inventory import (
     StockHistory,
     item_game_compatibility,
 )
+from app.models.library import LibraryRecord, LibraryState
 from app.models.maintenance import MaintenanceRecord, WorkLog
 from app.models.parts import (
     ItemSupplier,
@@ -76,6 +77,8 @@ __all__ = [
     "RomBurn",
     "RomDump",
     "RomFile",
+    "LibraryRecord",
+    "LibraryState",
     "Reading",
     "GameEvent",
     "MaintenanceTask",

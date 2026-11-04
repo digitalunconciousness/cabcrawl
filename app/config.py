@@ -46,6 +46,13 @@ class Settings:
     aws_bucket: str
     aws_region: str
     easypost_api_key: str           # "" = live parcel tracking is off
+    # The library (GATBOX's archive): a read-only copy of the games the machines name. "" = no archive
+    # configured, so the pull job does nothing and the pages have no library section.
+    library_url: str = ""
+    library_token: str = ""         # a reader token (gbx_<id>.<secret>): read-only, issued per app by the archive
+    library_access_id: str = ""     # Cloudflare Access service token, only when the archive is reached through the tunnel
+    library_access_secret: str = ""
+    library_max_file_mb: int = 100
     warnings: tuple[str, ...] = field(default=(), compare=False)
 
     def apply(self, config) -> None:
@@ -65,6 +72,11 @@ class Settings:
             AWS_BUCKET_NAME=self.aws_bucket,
             AWS_REGION=self.aws_region,
             EASYPOST_API_KEY=self.easypost_api_key,
+            LIBRARY_URL=self.library_url,
+            LIBRARY_TOKEN=self.library_token,
+            LIBRARY_ACCESS_ID=self.library_access_id,
+            LIBRARY_ACCESS_SECRET=self.library_access_secret,
+            LIBRARY_MAX_FILE=self.library_max_file_mb * 1024 * 1024,
         )
 
 
@@ -156,6 +168,30 @@ def load(env: Mapping[str, str] | None = None, *, default_db: str = "sqlite:///a
     easypost = get("EASYPOST_API_KEY")
     easypost = "" if _placeholder(easypost) else easypost
 
+    # The library archive. The address is the archive's private address (http on the node's own network is
+    # fine: the token is read-only and the traffic doesn't leave it) or its tunnel address (https, with the
+    # Cloudflare Access service token pair). One without the other is a mistake, said at startup.
+    lib_url = get("LIBRARY_ARCHIVE_URL").rstrip("/")
+    lib_token = get("LIBRARY_ARCHIVE_TOKEN")
+    lib_id, lib_secret = get("LIBRARY_ACCESS_CLIENT_ID"), get("LIBRARY_ACCESS_CLIENT_SECRET")
+    if lib_url:
+        parts = urlsplit(lib_url)
+        if parts.scheme not in ("http", "https") or not parts.netloc or parts.path or parts.query or parts.fragment:
+            errors.append(f"LIBRARY_ARCHIVE_URL={lib_url!r} must be just an address, like http://archive.example.test:8081 "
+                          "or https://archive.example.org")
+        if lib_token and not (lib_token.startswith("gbx_") and "." in lib_token):
+            errors.append("LIBRARY_ARCHIVE_TOKEN must be a reader token of the form gbx_<id>.<secret>")
+        if not lib_token:
+            warnings.append("LIBRARY_ARCHIVE_URL is set but LIBRARY_ARCHIVE_TOKEN is not, so the library is not read.")
+    elif lib_token or lib_id or lib_secret:
+        warnings.append("LIBRARY_ARCHIVE_TOKEN or the Access service token is set but LIBRARY_ARCHIVE_URL is not, "
+                        "so the library is not read.")
+    if bool(lib_id) != bool(lib_secret):
+        warnings.append("LIBRARY_ACCESS_CLIENT_ID and LIBRARY_ACCESS_CLIENT_SECRET go together; neither is sent.")
+        lib_id = lib_secret = ""
+    if not lib_url or not lib_token:
+        lib_url = lib_token = lib_id = lib_secret = ""          # half a setting is no setting
+
     settings = Settings(
         secret_key=secret,
         database_url=database_url,
@@ -171,6 +207,11 @@ def load(env: Mapping[str, str] | None = None, *, default_db: str = "sqlite:///a
         aws_bucket=aws["AWS_BUCKET_NAME"],
         aws_region=get("AWS_REGION", "us-east-1"),
         easypost_api_key=easypost,
+        library_url=lib_url,
+        library_token=lib_token,
+        library_access_id=lib_id,
+        library_access_secret=lib_secret,
+        library_max_file_mb=number("LIBRARY_MAX_FILE_MB", 100, 1),
         warnings=tuple(warnings),
     )
     if errors:

@@ -84,6 +84,8 @@ def _configure_app(app: Flask) -> Settings:
     # service may write and the uploads backup already archives, and a folder deep: the one route
     # that serves from uploads/ takes a bare file name, so nothing here has a URL.
     app.config["ROM_FILES_DIR"] = os.path.join(app.config["UPLOAD_FOLDER"], "rom_files")
+    # The library's manuals (PDFs read from the archive), by hash: the same arrangement and the same reason.
+    app.config["LIBRARY_FILES_DIR"] = os.path.join(app.config["UPLOAD_FOLDER"], "library_files")
 
     # CSRF ---------------------------------------------------------
     # Enforced on every POST (Flask-WTF's default; it was switched off until 2026-10-08).
@@ -178,6 +180,7 @@ def _register_blueprints(app: Flask) -> None:
         ("app.routes.api_v1", "api_v1_bp"),
         ("app.routes.rails", "rails_bp"),
         ("app.routes.roms", "roms_bp"),
+        ("app.routes.library", "library_bp"),
         ("app.routes.report", "report_bp"),
         ("app.routes.styleguide", "styleguide_bp"),
     ]
@@ -246,6 +249,13 @@ def _register_context_processors(app: Flask) -> None:
         except Exception:  # noqa: BLE001 -- a missing table must not take every page down
             return {"branding": {"name": None, "logo_url": None, "logo_is_svg": False,
                                  "background_url": None, "print_logo_url": None}}
+
+    @app.context_processor
+    def library_processor() -> dict:
+        """Whether an archive is set up: the nav's Library link and the machine page's game section exist only then."""
+        from app.services import library
+
+        return {"library_on": library.configured(), "library_ago": library.ago}
 
     @app.context_processor
     def utility_processor() -> dict:

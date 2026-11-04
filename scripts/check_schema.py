@@ -72,6 +72,7 @@ INTRODUCED_BY = {
     ("inventory_item", "reorder_to"): "f1a2b3c4d5e6",
     ("inventory_request", "quantity_received"): "f1a2b3c4d5e6",
     ("inventory_item", "serialized"): "a2b3c4d5e6f7",
+    ("game", "model_key"): "f6a7b8c9d0e1",
 }
 
 # Which migration created each table. Only tables a migration actually creates belong here:
@@ -109,6 +110,8 @@ TABLE_INTRODUCED_BY = {
     "rom_file": "e5f6a7b8c9d0",
     "rom_dump": "e5f6a7b8c9d0",
     "rom_burn": "e5f6a7b8c9d0",
+    "library_record": "f6a7b8c9d0e1",
+    "library_state": "f6a7b8c9d0e1",
 }
 
 # The revision that precedes each, i.e. what to stamp so `upgrade` will apply it.
@@ -138,6 +141,7 @@ PREDECESSOR = {
     "b3c4d5e6f7a8": "a2b3c4d5e6f7",
     "c4d5e6f7a8b9": "b3c4d5e6f7a8",
     "e5f6a7b8c9d0": "c4d5e6f7a8b9",
+    "f6a7b8c9d0e1": "e5f6a7b8c9d0",
 }
 
 # Every index app/models/indexes.py declares came from this revision.
@@ -151,7 +155,7 @@ ORDER = ["5a026e6869ec", "ebead5244def", "3e5463d29981", "e7582856b8aa",
          "b6c7d8e9f0a1", "c8d9e0f1a2b3", "d9e0f1a2b3c4",
          "e0f1a2b3c4d5", "f1a2b3c4d5e6",
          "a2b3c4d5e6f7", "b3c4d5e6f7a8",
-         "c4d5e6f7a8b9", "e5f6a7b8c9d0"]
+         "c4d5e6f7a8b9", "e5f6a7b8c9d0", "f6a7b8c9d0e1"]
 
 
 def check_encoding(db) -> dict | None:

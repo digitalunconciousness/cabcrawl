@@ -1,0 +1,42 @@
+[Unit]
+# Installed at /etc/systemd/system/arcade-tracker-library.service, started every ten minutes by
+# arcade-tracker-library.timer. Reads the game library's changes for this floor's machines from GATBOX's
+# archive (a read-only copy): scripts/pull_library.py. Needs LIBRARY_ARCHIVE_URL and LIBRARY_ARCHIVE_TOKEN
+# in .env; without them it does nothing.
+Description=Cabcrawl: read the game library from the archive
+Documentation=https://github.com/digitalunconciousness/cabcrawl
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=arcade-tracker
+Group=arcade-tracker
+WorkingDirectory=/opt/arcade-tracker
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/arcade-tracker-venv/bin/python scripts/pull_library.py
+# A run reads at most 20 manuals and stops itself at four minutes; this is the backstop if it wedges in a socket.
+TimeoutStartSec=600
+StandardOutput=journal
+StandardError=journal
+
+# The same sandbox as the site (arcade-tracker.service). create_app makes its folders at startup, so the
+# same paths have to be writable; the manuals land in uploads/library_files.
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictSUIDSGID=yes
+LockPersonality=yes
+ReadWritePaths=/opt/arcade-tracker/instance
+ReadWritePaths=/opt/arcade-tracker/uploads
+ReadWritePaths=/opt/arcade-tracker/backups
+ReadWritePaths=/opt/arcade-tracker/logs
+ReadWritePaths=/opt/arcade-tracker/static/maintenance_photos
+ReadWritePaths=/opt/arcade-tracker/static/profile_pics
+Environment=MPLCONFIGDIR=/tmp/matplotlib

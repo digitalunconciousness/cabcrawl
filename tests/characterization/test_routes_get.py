@@ -197,6 +197,9 @@ ELSEWHERE = {
     "/api/v1/files/<sha256>": "tests/test_roms.py",
     "/roms/dump/<int:dump_id>/image": "tests/test_roms.py: needs a dump and its image on disk",
     "/roms/burn/<int:burn_id>/image": "tests/test_roms.py: needs a burn and its image on disk",
+    "/library/": "tests/test_library_pages.py: without an archive configured it is a 404 for every role",
+    "/library/<key>": "tests/test_library_pages.py: needs a pulled copy",
+    "/library/file/<sha>": "tests/test_library_pages.py: needs a pulled manual on disk",
     "/static/<path:filename>": "static files",
 }
 RETIRING = "/skeeball"  # retired 2026-10-08; test_route_authentication asserts it is gone
