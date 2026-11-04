@@ -444,6 +444,54 @@ Then, **in this order**:
 3. Delete `/root/roster-map.json` and `/root/labels-to-reprint.json` from the
    server once the labels are printed. Both are the floor list.
 
+## One-time: the game library from GATBOX's archive (Phase D5) ⏸
+
+The machine page shows the manual, rail limits and facts of the game a machine is, copied from GATBOX's
+archive (`contract/library-v1/`). It is a read-only copy: `scripts/pull_library.py` reads it every ten
+minutes with a reader token and never writes to the archive. Without the settings in step 2 nothing
+changes: the timer's runs say so and exit 0, and the app has no library section.
+
+1. **Deploy the release.** `deploy/deploy.sh` runs the migration (it adds `game.model_key` and the
+   `library_record` and `library_state` tables). Nothing else changes until step 2.
+2. **At the archive**, mint a reader token for this app (`gatbox-archive token add cabcrawl --role reader`;
+   it is shown once). Then add to `/opt/arcade-tracker/.env`:
+
+   ```
+   LIBRARY_ARCHIVE_URL=<the archive's private address, like http://archive.example.test:8081, or its tunnel address>
+   LIBRARY_ARCHIVE_TOKEN=<the reader token>
+   ```
+
+   Through the tunnel also `LIBRARY_ACCESS_CLIENT_ID` and `LIBRARY_ACCESS_CLIENT_SECRET` (a Cloudflare
+   Access service token whose policy lets this path through). A URL that isn't just an address, a token that
+   isn't `gbx_<id>.<secret>`, or one half of the pair stops the app at start-up with a message.
+3. **Install the timer.** Read `deploy/arcade-tracker-library.service` and `.timer` first; neither is installed
+   until you run this:
+
+   ```bash
+   cp /opt/arcade-tracker/deploy/arcade-tracker-library.service /opt/arcade-tracker/deploy/arcade-tracker-library.timer /etc/systemd/system/
+   systemctl daemon-reload && systemctl enable --now arcade-tracker-library.timer
+   systemctl start arcade-tracker-library.service && journalctl -u arcade-tracker-library.service -n 5 --no-pager
+   ```
+
+   The log line is one set of counts. Exit 1 (a failed unit) means the archive refused the token: mint a new
+   one and update `.env`.
+4. **Link the machines.** On the deck, `gatbox-library seed --plan` wrote a plan (the owner edited it before
+   `--apply`). Copy that file to the container, outside the checkout (it is the floor list), and run, as the
+   service user:
+
+   ```bash
+   cd /opt/arcade-tracker && /opt/arcade-tracker-venv/bin/python scripts/link_model_keys.py ~/gatbox-library-plan.json
+   /opt/arcade-tracker-venv/bin/python scripts/link_model_keys.py ~/gatbox-library-plan.json --apply
+   ```
+
+   The first run only shows what it would link. A machine that already has a different key (set by hand on its
+   page) is listed and left alone; `--force` replaces it. Delete the plan from the container afterwards. After
+   this, managers change a link on the machine page, and GATBOX's roster carries each machine's key.
+5. `python scripts/pull_library.py --status` says how the last run went and what is held.
+
+The manuals are in `uploads/library_files/`, so the uploads backup carries them; the pull fetches them again if a
+restore leaves some out.
+
 ## If the database is SQL_ASCII
 
 Symptom: a save fails with `'ascii' codec can't encode character '\u2014'`. The roster

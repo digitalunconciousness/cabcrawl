@@ -626,3 +626,10 @@ anything is changed.
     unknown one), and has items for other machines rejected with a reason. Text over a limit
     (issue and note 2000, technician 50, file 64) rejects the item, not the request. Both are in
     `contract/v1/README.md`; GATBOX's vendored copy has to be updated to match its checksums.
+18. **The game library** (2026-11-04, Phase D5): a read-only copy of GATBOX's archive for the games the machines name.
+    `Game.model_key` (set by managers on the machine page, or once from the deck's seed plan with
+    `scripts/link_model_keys.py`; GATBOX's roster carries it), a generic `library_record` table, and
+    `scripts/pull_library.py` on a ten-minute timer with a reader token. The machine page shows the game's manuals,
+    limits and facts; Library in the nav lists the games. The PDFs are in `uploads/library_files/` behind the login.
+    Off without `LIBRARY_ARCHIVE_URL` and `LIBRARY_ARCHIVE_TOKEN`. The format is `contract/library-v1/`, GATBOX's,
+    vendored byte-identical. Nothing here edits the library, and `by` (who wrote a record) is never shown.
