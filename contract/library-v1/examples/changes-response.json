@@ -1,0 +1,104 @@
+{
+  "records": [
+    {
+      "kind": "game",
+      "id": "widget-wars",
+      "rev": 1,
+      "hash": "7c022abd2e533f70e39af99dcd9924f0198099b538f6d807535ea2f487bedfd7",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "title": "Widget Wars",
+        "mfr": "Acme",
+        "year": 1998,
+        "kind": "video",
+        "notes": "A dedicated cabinet.",
+        "replaced_by": null
+      }
+    },
+    {
+      "kind": "document",
+      "id": "widget-wars/service-manual",
+      "rev": 1,
+      "hash": "f9029f762b3a661b3b28bdc432afd07c32cb8e24729e33cea716b4aaab1f81f7",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "model_key": "widget-wars",
+        "doc_id": "service-manual",
+        "title": "Service manual",
+        "kind": "manual",
+        "source_url": null,
+        "source": "an invented archive",
+        "sha256": "1748f57bbc4eab83592d9b4ef531b0eb42e26ce3b2229c409c2e264024c508be",
+        "pages": 1,
+        "bytes": 590
+      }
+    },
+    {
+      "kind": "mame",
+      "id": "widget-wars",
+      "rev": 1,
+      "hash": "5bbe180c3205901535632c1239cd2c776eff191816d9ecfcd931a267052f27ee",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "model_key": "widget-wars",
+        "set": "widgetw",
+        "prefer": "widgetw",
+        "status": "sure",
+        "why": "same title and year"
+      }
+    },
+    {
+      "kind": "rom_list",
+      "id": "widget-wars",
+      "rev": 1,
+      "hash": "f05b0d4a560d5dfc5da6d0df1108e00dbf74786b9fa4cc36ae1a4e0401eca51c",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "model_key": "widget-wars",
+        "mame": "0.276 (mame0276)",
+        "set": "widgetw",
+        "versions": [
+          {
+            "name": "widgetw",
+            "parent": true,
+            "description": "Widget Wars (rev 2)",
+            "year": "1998",
+            "mfr": "Acme",
+            "roms": [
+              {
+                "name": "ww_u1.bin",
+                "size": 65536,
+                "crc": "deadbeef",
+                "sha1": "1111111111111111111111111111111111111111",
+                "region": "maincpu",
+                "status": null,
+                "bios": null
+              },
+              {
+                "name": "ww_u2.bin",
+                "size": 65536,
+                "crc": "feedface",
+                "sha1": "2222222222222222222222222222222222222222",
+                "region": "maincpu",
+                "status": null,
+                "bios": null
+              }
+            ],
+            "disks": []
+          }
+        ]
+      }
+    }
+  ],
+  "cursor": 4,
+  "more": true,
+  "head": 11
+}

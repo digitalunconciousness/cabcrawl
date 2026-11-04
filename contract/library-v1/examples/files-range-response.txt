@@ -1,0 +1,9 @@
+GET /api/v1/files/1748f57bbc4eab83592d9b4ef531b0eb42e26ce3b2229c409c2e264024c508be HTTP/1.1
+Range: bytes=0-127
+
+HTTP/1.1 206 Partial Content
+Content-Type: application/pdf
+Content-Length: 128
+Accept-Ranges: bytes
+ETag: "1748f57bbc4eab83592d9b4ef531b0eb42e26ce3b2229c409c2e264024c508be"
+Content-Range: bytes 0-127/590

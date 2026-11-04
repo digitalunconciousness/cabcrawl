@@ -1,0 +1,219 @@
+{
+  "records": [
+    {
+      "kind": "game",
+      "id": "widget-wars",
+      "rev": 1,
+      "hash": "7c022abd2e533f70e39af99dcd9924f0198099b538f6d807535ea2f487bedfd7",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "title": "Widget Wars",
+        "mfr": "Acme",
+        "year": 1998,
+        "kind": "video",
+        "notes": "A dedicated cabinet.",
+        "replaced_by": null
+      }
+    },
+    {
+      "kind": "document",
+      "id": "widget-wars/service-manual",
+      "rev": 1,
+      "hash": "f9029f762b3a661b3b28bdc432afd07c32cb8e24729e33cea716b4aaab1f81f7",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "model_key": "widget-wars",
+        "doc_id": "service-manual",
+        "title": "Service manual",
+        "kind": "manual",
+        "source_url": null,
+        "source": "an invented archive",
+        "sha256": "1748f57bbc4eab83592d9b4ef531b0eb42e26ce3b2229c409c2e264024c508be",
+        "pages": 1,
+        "bytes": 590
+      }
+    },
+    {
+      "kind": "mame",
+      "id": "widget-wars",
+      "rev": 1,
+      "hash": "5bbe180c3205901535632c1239cd2c776eff191816d9ecfcd931a267052f27ee",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "model_key": "widget-wars",
+        "set": "widgetw",
+        "prefer": "widgetw",
+        "status": "sure",
+        "why": "same title and year"
+      }
+    },
+    {
+      "kind": "rom_list",
+      "id": "widget-wars",
+      "rev": 1,
+      "hash": "f05b0d4a560d5dfc5da6d0df1108e00dbf74786b9fa4cc36ae1a4e0401eca51c",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "model_key": "widget-wars",
+        "mame": "0.276 (mame0276)",
+        "set": "widgetw",
+        "versions": [
+          {
+            "name": "widgetw",
+            "parent": true,
+            "description": "Widget Wars (rev 2)",
+            "year": "1998",
+            "mfr": "Acme",
+            "roms": [
+              {
+                "name": "ww_u1.bin",
+                "size": 65536,
+                "crc": "deadbeef",
+                "sha1": "1111111111111111111111111111111111111111",
+                "region": "maincpu",
+                "status": null,
+                "bios": null
+              },
+              {
+                "name": "ww_u2.bin",
+                "size": 65536,
+                "crc": "feedface",
+                "sha1": "2222222222222222222222222222222222222222",
+                "region": "maincpu",
+                "status": null,
+                "bios": null
+              }
+            ],
+            "disks": []
+          }
+        ]
+      }
+    },
+    {
+      "kind": "rail_limit",
+      "id": "c0ffee00c0ffee00c0ffee00c0ffee00",
+      "rev": 1,
+      "hash": "c25ed1ca75adfe7f0fa0b7bae66c19eabab564575e6808f0aba9fe5db362a424",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "model_key": "widget-wars",
+        "rail": "+5V",
+        "lo": "4.75",
+        "hi": "5.25",
+        "doc_id": "service-manual",
+        "page": 1,
+        "quote": "+5 VDC, 4.75 to 5.25 V",
+        "confirmed": {
+          "by": "the deck",
+          "at": 1760000000.0
+        }
+      }
+    },
+    {
+      "kind": "fact",
+      "id": "f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1",
+      "rev": 1,
+      "hash": "0e8ff9640a9c9c14a281ac0004b8df737c4746c9a82e1a402e3fbc15465b484a",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "model_key": "widget-wars",
+        "group": "fuse",
+        "what": "Fuse F1",
+        "value": "3 A slow-blow",
+        "doc_id": "service-manual",
+        "page": 1,
+        "quote": "F1 3A SLO-BLO"
+      }
+    },
+    {
+      "kind": "rom_image",
+      "id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "rev": 1,
+      "hash": "f468a59c3a2c7b3433d173d4ee106cf74e6cbd8a41c5cb28d03a34ebe69c46f0",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "size": 65536,
+        "crc32": "deadbeef",
+        "sha1": "1111111111111111111111111111111111111111",
+        "label": "U1",
+        "part": "27C512",
+        "romident": null,
+        "model_key": "widget-wars",
+        "chip": "U1",
+        "verdict": "good",
+        "revision": "rev 2",
+        "note": "dumped twice, identical"
+      }
+    },
+    {
+      "kind": "game",
+      "id": "pin-comet-run",
+      "rev": 1,
+      "hash": "ccc66d2fdcc9a55509b4c4596f6ea3e13c5935ba2d4b1434e385cd09c1620638",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "title": "Comet Run",
+        "mfr": "Orbital",
+        "year": 1985,
+        "kind": "pinball",
+        "notes": "",
+        "replaced_by": null
+      }
+    },
+    {
+      "kind": "fact",
+      "id": "abababababababababababababababab",
+      "rev": 1,
+      "hash": "f4bcce8f5fd4389d01725ff68f427c71f3ee69482b4710d533445d1457c371ad",
+      "deleted": false,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "model_key": "pin-comet-run",
+        "group": "power",
+        "what": "Line voltage",
+        "value": "120 V",
+        "doc_id": null,
+        "page": null,
+        "quote": ""
+      }
+    },
+    {
+      "kind": "fact",
+      "id": "e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1",
+      "rev": 2,
+      "hash": "402f6a43a7c91a068c2b01bdbae1dda86b9b07e015e0fc5e83c72ea37dbced2b",
+      "deleted": true,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "model_key": "widget-wars",
+        "group": "monitor",
+        "what": "Chassis",
+        "value": "25 inch",
+        "doc_id": null,
+        "page": null,
+        "quote": ""
+      }
+    }
+  ],
+  "cursor": 11,
+  "more": false,
+  "head": 11
+}
