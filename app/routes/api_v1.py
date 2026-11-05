@@ -22,16 +22,22 @@ import re
 import time
 from datetime import datetime, timezone
 
-from flask import Blueprint, g, jsonify, request
+from flask import Blueprint, g, jsonify, request, send_file
 
 from app.extensions import csrf, db, limiter
 from app.models import Game, MaintenanceRecord, RailSession, RailSessionTag, Reading
+from app.services import rom_files, rom_ingest
+from app.services.rom_files import FileProblem
 from app.utils.decorators import device_rate_key, requires_device
 
 api_v1_bp = Blueprint("api_v1", __name__, url_prefix="/api/v1")
 csrf.exempt(api_v1_bp)
 
 CONTRACT = "v1"
+# What this hub serves beyond the core (contract v1, "Additions"): the ROM images GATBOX dumps and
+# burns. It has no jobs, so it does not list "jobs".
+APP = "cabcrawl"
+CAPABILITIES = ["roms"]
 
 # Contract limits. Over any of them is a 400 that writes nothing, never a partial accept.
 MAX_ITEMS = 100
@@ -109,7 +115,8 @@ def health():
     and it needs that answer before it commits to sending anything. It reveals only that
     the application is up, which an unauthenticated request to `/` reveals anyway.
     """
-    return jsonify({"ok": True, "contract": CONTRACT, "time": time.time()})
+    return jsonify({"ok": True, "contract": CONTRACT, "time": time.time(), "app": APP,
+                    "capabilities": CAPABILITIES})
 
 
 @api_v1_bp.route("/ingest", methods=["POST"])
@@ -164,6 +171,10 @@ def ingest():
                 results.append(_ingest_order(device, item, games))
             elif kind == "session_tag":
                 results.append(_ingest_session_tag(device, item))
+            elif kind == "rom_dump":
+                results.append(rom_ingest.ingest_dump(device, item, games))
+            elif kind == "burn":
+                results.append(rom_ingest.ingest_burn(device, item, games))
             else:
                 results.append({"uid": item.get("uid"), "kind": kind, "status": "rejected",
                                 "reason": f"unknown kind {kind!r}"})
@@ -515,3 +526,76 @@ def machine_orders(slug):
             for o in orders
         ],
     })
+
+
+# ============================================================================
+# ROM IMAGES (capability roms): the resumable upload, and reading back
+# ============================================================================
+
+@api_v1_bp.errorhandler(FileProblem)
+def file_problem(error):
+    """A refused files call. Nothing is half-written: an upload's state is on disk, and a
+    finish that fails the check drops it."""
+    db.session.rollback()
+    return _bad(str(error), error.code)
+
+
+@api_v1_bp.route("/files", methods=["POST"])
+@limiter.limit("120 per minute", key_func=device_rate_key)
+@requires_device
+def files_begin():
+    answer = rom_files.begin(request.get_json(silent=True))
+    db.session.commit()
+    return jsonify(answer)
+
+
+@api_v1_bp.route("/files/<sha256>/parts/<int:n>", methods=["PUT"])
+@limiter.limit("240 per minute", key_func=device_rate_key)
+@requires_device
+def files_part(sha256, n):
+    if request.mimetype != "application/octet-stream":
+        return _bad("send application/octet-stream", 415)
+    if (request.content_length or 0) > rom_files.PART_SIZE:
+        return _bad(f"a part is at most {rom_files.PART_SIZE} bytes", 413)
+    data = request.get_data(cache=False)
+    if len(data) > rom_files.PART_SIZE:
+        return _bad(f"a part is at most {rom_files.PART_SIZE} bytes", 413)
+    return jsonify(rom_files.put_part(sha256, n, data))
+
+
+@api_v1_bp.route("/files/<sha256>/finish", methods=["POST"])
+@limiter.limit("120 per minute", key_func=device_rate_key)
+@requires_device
+def files_finish(sha256):
+    answer = rom_files.finish(sha256, g.device)
+    db.session.commit()
+    return jsonify(answer)
+
+
+@api_v1_bp.route("/files/<sha256>", methods=["GET"])
+@limiter.limit("120 per minute", key_func=device_rate_key)
+@requires_device
+def files_read(sha256):
+    """A device reads back only an image that a dump or a burn of one of its machines names
+    (Range supported)."""
+    rom_files.check_hash(sha256)
+    if rom_files.named_by_a_record(sha256, g.device) is None:
+        return _bad("no such file", 404)
+    try:
+        response = send_file(rom_files.path_for(sha256), mimetype="application/octet-stream",
+                             conditional=True, etag=sha256, max_age=0)
+    except FileNotFoundError:
+        return _bad("no such file", 404)
+    response.headers["Cache-Control"] = "private, no-store"
+    return response
+
+
+@api_v1_bp.route("/machines/<slug>/dumps", methods=["GET"])
+@limiter.limit("60 per minute", key_func=device_rate_key)
+@requires_device
+def machine_dumps(slug):
+    """A machine's dumps and burns, as the hub holds them (a rebuilt GATBOX reads these)."""
+    game = Game.query.filter_by(barcode=slug).first()
+    if game is None or not g.device.allows(game):
+        return _bad(f"no machine with slug {slug!r}", 404)
+    return jsonify(rom_ingest.machine_dumps(game))

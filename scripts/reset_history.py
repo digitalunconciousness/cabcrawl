@@ -13,7 +13,8 @@ Deleted:
 Kept:
   - machines: name, barcode (printed QR labels), coin-door code (printed coin-door labels),
     location, status, counter status, price per play, notes, cabinet photo
-  - user accounts, GATBOX device tokens, and the rail voltage history (sessions, readings)
+  - user accounts, GATBOX device tokens, the rail voltage history (sessions, readings) and
+    GATBOX's ROM dumps and burns (no longer linked to the deleted work orders)
   - each machine's location and status timeline (no longer linked to the deleted work orders)
   - storage places, part categories, suppliers, and maintenance tasks
 
@@ -62,6 +63,8 @@ from app.models import (                        # noqa: E402
     PurchaseOrder,
     PurchaseOrderLine,
     RailSessionTag,
+    RomBurn,
+    RomDump,
     SerialUnit,
     StockCount,
     StockCountLine,
@@ -168,7 +171,7 @@ def main(argv: list[str] | None = None, app=None) -> int:
             print(f"  {n:>7}  {label}")
         print(f"  {len(photos):>7}  work-order photo files")
         print(f"Keeping {machines} machines (totals and rankings reset to zero) and their "
-              "timelines, users, devices, rail history, storage places, part categories, "
+              "timelines, users, devices, rail history, ROM dumps and burns, storage places, part categories, "
               "suppliers and maintenance tasks.")
 
         if not args.yes:
@@ -183,6 +186,8 @@ def main(argv: list[str] | None = None, app=None) -> int:
             # The machine timeline stays. PostgreSQL clears its link to a deleted work order
             # itself (ON DELETE SET NULL); SQLite doesn't enforce foreign keys, so do it here.
             db.session.execute(db.update(GameEvent).values(maintenance_id=None))
+            db.session.execute(db.update(RomDump).values(maintenance_record_id=None))
+            db.session.execute(db.update(RomBurn).values(maintenance_record_id=None))
             for _label, target in DELETE_ORDER:
                 _delete(target)
             db.session.execute(db.update(Game).values(

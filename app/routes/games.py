@@ -111,6 +111,7 @@ def game_detail(game_id):
     what each role can *do* here is exactly what the linked routes allow.
     """
     from app.routes.rails import verdict_of
+    from app.services import rom_ingest
     from app.services.machines import machine_page
 
     game = db.get_or_404(Game, game_id)
@@ -119,6 +120,7 @@ def game_detail(game_id):
         "game_detail.html",
         page=page,
         game=game,
+        roms=rom_ingest.for_game(game.id),
         rail_verdict=verdict_of(page.rail_last) if page.rail_last else None,
         priorities=["Low", "Medium", "High", "Critical"],
     )

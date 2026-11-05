@@ -164,7 +164,7 @@ def test_every_post_route_is_listed(app, floor):
         endpoint, _args = adapter.match(build(floor), method="POST")
         covered.add(endpoint)
     exempt = {"auth.login", "auth.setup", "auth.profile", "auth.change_password",
-              "report.report_form", "api_v1.ingest"}
+              "report.report_form", "api_v1.ingest", "api_v1.files_begin", "api_v1.files_finish"}
     missing = sorted(
         r.endpoint for r in app.url_map.iter_rules()
         if "POST" in r.methods and r.endpoint not in covered | exempt

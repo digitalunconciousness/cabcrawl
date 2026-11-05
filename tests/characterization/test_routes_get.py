@@ -193,6 +193,10 @@ ELSEWHERE = {
     "/api/v1/health": "tests/test_api_v1_contract.py (Phase 1 hub, untouched)",
     "/api/v1/roster": "tests/test_api_v1_contract.py",
     "/api/v1/machines/<slug>/orders": "tests/test_api_v1_contract.py",
+    "/api/v1/machines/<slug>/dumps": "tests/test_roms.py",
+    "/api/v1/files/<sha256>": "tests/test_roms.py",
+    "/roms/dump/<int:dump_id>/image": "tests/test_roms.py: needs a dump and its image on disk",
+    "/roms/burn/<int:burn_id>/image": "tests/test_roms.py: needs a burn and its image on disk",
     "/static/<path:filename>": "static files",
 }
 RETIRING = "/skeeball"  # retired 2026-10-08; test_route_authentication asserts it is gone

@@ -1,0 +1,16 @@
+{
+  "contract": "v1",
+  "received": 2,
+  "results": [
+    {
+      "uid": "24c8c559b79690c3effdf7b3fabcedb1",
+      "kind": "rom_dump",
+      "status": "created"
+    },
+    {
+      "uid": "4e8659bbb33eaa4dc7ea7263b8d4d710",
+      "kind": "burn",
+      "status": "created"
+    }
+  ]
+}

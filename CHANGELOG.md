@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **ROM images from GATBOX** (contract v1, capability `roms`, planned in the integration plan's phase C).
+  A machine's chip dumps and burns now arrive here: the image first, by hash and in parts that
+  resume, then a `rom_dump` or `burn` record. The machine page and the work order it was made for list
+  them; an operator or above can download the image. A dump or burn is accepted only when its image is
+  stored and its size, SHA-1 and CRC32 match the stored bytes, and for a device limited to some
+  machines, only those. Images are kept in `uploads/rom_files/` (already writable under the service and
+  already in the uploads backup). The migration adds three tables (`rom_file`, `rom_dump`, `rom_burn`).
+  `/api/v1/health` now says `app` and `capabilities`. A history reset keeps the dumps and burns and
+  clears their link to the deleted work orders. The deck sends nothing until it has the matching change.
+
 ## [3.0.0] - 2026-10-27
 
 The biggest release since 1.0: a new name, a new design, a full inventory system, the GATBOX
