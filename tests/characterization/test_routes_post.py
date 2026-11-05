@@ -137,6 +137,8 @@ POSTS = [
     # Coin-door labels are keys: printing (which mints) and retiring them is managers' (F-17).
     (lambda f: f"/game/{f['raider']}/report-token/rotate", "manager"),
     (lambda f: "/labels/coindoor/sheet", "manager"),
+    (lambda f: f"/library/link/{f['raider']}", "manager"),
+    (lambda f: "/library/widget-wars/clear", "manager"),
     (lambda f: "/logout", "readonly"),
 ]
 BELOW = {"readonly": "anon", "operator": "readonly", "manager": "operator", "admin": "manager"}

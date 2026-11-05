@@ -1,0 +1,82 @@
+{#- Pieces of the library copy (app/services/library.py shapes `lib`), shared by the machine page and the game page.
+    Import with context: {% import "_library_parts.html" as lp with context %}.
+    Who wrote or confirmed a record (`by`) is never shown: it can be a person's address at the archive. -#}
+{%- import "ui.html" as ui -%}
+
+{% macro source(src) -%}
+{%- if src and src.doc -%}
+{%- if src.doc.file -%}
+<a href="{{ url_for('library.manual', sha=src.doc.sha256) }}{% if src.page %}#page={{ src.page }}{% endif %}">{{ src.doc.title }}{% if src.page %}, page {{ src.page }}{% endif %}</a>
+{%- else -%}
+{{ src.doc.title }}{% if src.page %}, page {{ src.page }}{% endif %}
+{%- endif -%}
+{%- else -%}<span class="dim">no page cited</span>{%- endif -%}
+{%- endmacro %}
+
+{% macro documents(lib) -%}
+{%- if lib.documents %}
+<ul class="rows">
+  {%- for d in lib.documents %}
+  {%- set size = ("%.1f MB"|format(d.bytes / 1048576)) if d.bytes and d.bytes >= 1048576 else (((d.bytes / 1024)|round(0, "ceil")|int) ~ " KB") if d.bytes else none %}
+  {%- set meta = [d.kind|capitalize, (d.pages ~ (" page" if d.pages == 1 else " pages")) if d.pages, size, d.source]|select|join(" · ") %}
+  <li>
+  {%- if d.file %}
+    <a class="row" href="{{ url_for('library.manual', sha=d.sha256) }}">
+      <span class="row__main"><span class="row__title">{{ d.title }}</span><span class="row__meta">{{ meta }}</span></span>
+      <span class="row__end">{{ ui.chip("ok", "Open") }}</span>
+    </a>
+  {%- else %}
+    <div class="row">
+      <span class="row__main"><span class="row__title">{{ d.title }}</span><span class="row__meta">{{ meta }}</span></span>
+      <span class="row__end">{{ ui.chip("muted", "Not downloaded yet" if d.sha256 else "No file at the archive") }}</span>
+    </div>
+  {%- endif %}
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- endmacro %}
+
+{% macro limits(lib) -%}
+{%- if lib.limits %}
+{%- if lib.limits|rejectattr("confirmed")|list %}
+<p class="dim">A limit marked unconfirmed was written down from a manual and nobody has checked it against the page yet. Do not judge a board by it.</p>
+{%- endif %}
+<div class="table-wrap">
+  <table class="table table--stack">
+    <thead><tr><th>Rail</th><th class="num">Low</th><th class="num">High</th><th>Source</th><th>Status</th></tr></thead>
+    <tbody>
+      {%- for l in lib.limits %}
+      <tr>
+        <td data-label="Rail">{{ l.rail }}</td>
+        <td data-label="Low" class="num">{{ l.lo }} V</td>
+        <td data-label="High" class="num">{{ l.hi }} V</td>
+        <td data-label="Source">{{ source(l.source) }}{% if l.quote %}<br><small class="dim">“{{ l.quote }}”</small>{% endif %}</td>
+        <td data-label="Status">{{ ui.chip("ok", "Confirmed") if l.confirmed else ui.chip("warn", "Unconfirmed") }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+</div>
+{%- endif %}
+{%- endmacro %}
+
+{% macro facts(lib) -%}
+{%- if lib.facts %}
+<div class="table-wrap">
+  <table class="table table--stack">
+    <thead><tr><th>Group</th><th>What</th><th>Value</th><th>Source</th></tr></thead>
+    <tbody>
+      {%- for f in lib.facts %}
+      <tr>
+        <td data-label="Group">{{ {"fuse": "Fuses", "monitor": "Monitor", "psu": "Power supply", "power": "Power", "other": "Other"}.get(f.group, f.group) }}</td>
+        <td data-label="What">{{ f.what }}</td>
+        <td data-label="Value">{{ f.value or "—" }}</td>
+        <td data-label="Source">{{ source(f.source) }}{% if f.quote %}<br><small class="dim">“{{ f.quote }}”</small>{% endif %}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+</div>
+{%- endif %}
+{%- endmacro %}

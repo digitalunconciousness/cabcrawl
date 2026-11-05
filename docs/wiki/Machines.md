@@ -43,6 +43,20 @@ that never changes:
 Labels print on sheets from **Machines → Labels** and **Inventory → Labels**. Set `BASE_URL`
 ([Configuration](Configuration)) before printing, so labels carry the public address.
 
+## Manual and limits (the game library)
+
+With GATBOX's archive set up ([Configuration](Configuration)), a machine linked to a game shows **Manual and limits**:
+the game's documents (they open in the browser, behind your sign-in), the rail limits written down from the manual,
+and a few facts such as fuse values. It is a read-only copy, refreshed every ten minutes, and the page says when. To
+change anything, edit the game at the archive.
+
+- A limit marked **Unconfirmed** was written down from a manual and nobody has checked it against the page yet. Don't
+  judge a board by it.
+- **Library** in the top bar lists every game the copy holds and the machines that name each one. Any signed-in role
+  can read it.
+- Managers link a machine to its game on the machine's page (**Game key in the library**, like `widget-wars`) and can
+  clear a game no machine names any more. GATBOX's roster carries the same key.
+
 ## Problem reports from the coin door
 
 ![The coin-door report form](images/coin-door-report-phone.png)

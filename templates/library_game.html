@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+{% import "ui.html" as ui %}
+{% import "_library_parts.html" as lp with context %}
+{% block title %}{{ lib.title }}{% endblock %}
+
+{% block page_head %}
+{{ ui.page_head(lib.title,
+    sub=[lib.mfr, lib.year, {"video": "Video", "pinball": "Pinball"}.get(lib.kind)]|select|join(" · ") or none,
+    back=url_for("library.index"), back_label="Library") }}
+{% endblock %}
+
+{% block content %}
+<p class="dim">Copied from the archive{% if lib.refreshed %}, refreshed {{ library_ago(lib.refreshed) }}{% endif %}. To change anything, edit it at the archive.</p>
+
+{%- if machines %}
+<section class="card" aria-labelledby="machines-title">
+  <h2 id="machines-title">Machines</h2>
+  <ul class="rows">
+    {%- for m in machines %}
+    <li><a class="row" href="{{ url_for('games.game_detail', game_id=m.id) }}">
+      <span class="row__main"><span class="row__title">{{ m.name }}</span><span class="row__meta">{{ m.location }}</span></span>
+      <span class="row__end">{{ ui.status(m.status) }}</span>
+    </a></li>
+    {%- endfor %}
+  </ul>
+</section>
+{%- endif %}
+
+{%- if lib.notes %}
+<section class="card" aria-labelledby="notes-title">
+  <h2 id="notes-title">Notes</h2>
+  <p>{{ lib.notes }}</p>
+</section>
+{%- endif %}
+
+<section class="card" aria-labelledby="docs-title">
+  <h2 id="docs-title">Documents</h2>
+  {%- if lib.documents %}{{ lp.documents(lib) }}
+  {%- else %}{{ ui.empty("No documents yet", text="The archive holds none for this game.") }}{% endif %}
+</section>
+
+<section class="card" aria-labelledby="limits-title">
+  <h2 id="limits-title">Rail limits</h2>
+  {%- if lib.limits %}{{ lp.limits(lib) }}
+  {%- else %}{{ ui.empty("No limits written down", text="Limits are read off a manual page at the archive.") }}{% endif %}
+</section>
+
+{%- if lib.facts %}
+<section class="card" aria-labelledby="facts-title">
+  <h2 id="facts-title">Facts from the manual</h2>
+  {{ lp.facts(lib) }}
+</section>
+{%- endif %}
+
+{%- if lib.mame or lib.rom_list %}
+<section class="card" aria-labelledby="mame-title">
+  <div class="card__head">
+    <h2 id="mame-title">ROM chips (MAME)</h2>
+    {%- if lib.mame and lib.mame.status %}{{ ui.chip("ok" if lib.mame.status == "sure" else "warn", "Set match: " ~ lib.mame.status) }}{% endif %}
+  </div>
+  <p class="dim">
+    {%- if lib.mame and lib.mame.set %}MAME set {{ lib.mame.set }}{% if lib.mame.why %}: {{ lib.mame.why }}{% endif %}
+    {%- elif lib.mame %}MAME does not list this game.{% endif %}
+    {%- if lib.rom_list %} Hashes only, from MAME {{ lib.rom_list.mame }}; no ROM data is held here.{% endif %}
+  </p>
+  {%- for v in (lib.rom_list.versions if lib.rom_list else []) %}
+  <details>
+    <summary>{{ v.name }}{% if v.description %}, {{ v.description }}{% endif %} · {{ v.roms|length }} chip{{ "" if v.roms|length == 1 else "s" }}</summary>
+    <div class="table-wrap">
+      <table class="table table--stack">
+        <thead><tr><th>Chip</th><th class="num">Size</th><th>CRC</th><th>SHA-1</th></tr></thead>
+        <tbody>
+          {%- for r in v.roms %}
+          <tr>
+            <td data-label="Chip">{{ r.name }}{% if r.region %} <span class="dim">({{ r.region }})</span>{% endif %}</td>
+            <td data-label="Size" class="num">{{ "{:,}".format(r.size) if r.size is not none else "—" }}</td>
+            <td data-label="CRC"><code>{{ r.crc or "—" }}</code></td>
+            <td data-label="SHA-1"><code>{{ r.sha1 or "—" }}</code></td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+  {%- endfor %}
+</section>
+{%- endif %}
+
+{%- if lib.images %}
+<section class="card" aria-labelledby="images-title">
+  <h2 id="images-title">Dumps marked at the bench</h2>
+  <p class="dim">The marks only. The images stay on the bench Pi and in the archive.</p>
+  <ul class="rows">
+    {%- for i in lib.images %}
+    <li class="row">
+      <span class="row__main"><span class="row__title">{{ i.label }}{% if i.chip %} · {{ i.chip }}{% endif %}</span>
+        <span class="row__meta">{{ "{:,}".format(i.size) }} bytes · SHA-1 {{ i.sha1 }}{% if i.revision %} · revision {{ i.revision }}{% endif %}{% if i.note %} · {{ i.note }}{% endif %}</span></span>
+      <span class="row__end">{{ ui.chip({"good": "ok", "bad": "fault"}.get(i.verdict, "muted"), {"good": "Known good", "bad": "Known bad"}.get(i.verdict, "Not judged")) }}</span>
+    </li>
+    {%- endfor %}
+  </ul>
+</section>
+{%- endif %}
+{% endblock %}

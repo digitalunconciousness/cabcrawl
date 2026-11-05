@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Load every page in a real browser and fail on any Content-Security-Policy violation.
 
-    python tests/screenshots/csp_check.py
+    python tests/screenshots/csp_check.py [--library]
 
 Development only, like take.py, whose synthetic seed, page list and sign-in it reuses. The
 template scan in tests/test_csp.py catches inline script, handlers and styles in markup; this
@@ -36,7 +36,8 @@ def main() -> int:
     from werkzeug.serving import make_server
 
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
-    app, ids = build_app(tempfile.mkdtemp(prefix="arcade-csp-"))
+    library = "--library" in sys.argv[1:]          # also seed a library copy and load its pages
+    app, ids = build_app(tempfile.mkdtemp(prefix="arcade-csp-"), library=library)
     server = make_server("127.0.0.1", 0, app, threaded=True)
     base = f"http://127.0.0.1:{server.server_port}"
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -63,7 +64,7 @@ def main() -> int:
                     page.fill("input[name=password]", PASSWORD)
                     page.click("[type=submit]")
                     page.wait_for_load_state("networkidle")
-                for _name, url, who in pages(ids):
+                for _name, url, who in pages(ids, library):
                     if who != role:
                         continue
                     console.clear()

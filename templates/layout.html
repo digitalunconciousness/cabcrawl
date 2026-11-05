@@ -12,7 +12,7 @@
 -#}
 {%- set section = {
     "dashboard": "dashboard", "games": "machines", "collection": "machines", "rotation": "machines", "upkeep": "orders", "alerts": "admin", "branding": "admin", "devices": "admin", "maintenance": "orders",
-    "inventory": "inventory", "rails": "rails", "reports": "reports", "admin": "admin",
+    "inventory": "inventory", "rails": "rails", "reports": "reports", "admin": "admin", "library": "library",
     "styleguide": "admin", "auth": "account",
   }.get(request.blueprint) -%}
 {%- if request.endpoint == "games.scan" %}{% set section = "scan" %}{% endif -%}
@@ -69,6 +69,9 @@
       {{ _nav_link("inventory", "inventory.inventory_list", "Inventory") }}
       {%- endif %}
       {{ _nav_link("rails", "rails.floor", "Rail history") }}
+      {%- if library_on %}
+      {{ _nav_link("library", "library.index", "Library") }}
+      {%- endif %}
       {%- if current_user.has_role("manager") %}
       {{ _nav_link("reports", "reports.reports", "Reports") }}
       {%- endif %}

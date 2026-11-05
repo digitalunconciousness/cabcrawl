@@ -1,0 +1,45 @@
+{#- The game section of a machine's page. `lib` is the game the machine's model_key names (app/services/library.py), or none.
+    Shown only when an archive is configured; read-only. A manager can change which game the machine is. -#}
+{%- import "ui.html" as ui -%}
+{%- import "_library_parts.html" as lp with context -%}
+{%- if library_on and (g.model_key or current_user.has_role("manager")) %}
+<section class="card" aria-labelledby="library-title">
+  <div class="card__head">
+    <h2 id="library-title">Manual and limits</h2>
+    {%- if lib %}{{ ui.chip("muted", "Read-only copy") }}{% endif %}
+  </div>
+  {%- if lib %}
+  <p>
+    <a href="{{ url_for('library.game_page', key=lib.key) }}">{{ lib.title }}</a>
+    <span class="dim"> · from the archive, {% if lib.refreshed %}refreshed {{ library_ago(lib.refreshed) }}{% else %}not fully read yet{% endif %}. To change anything, edit it at the archive.</span>
+  </p>
+  {{ lp.documents(lib) }}
+  {{ lp.limits(lib) }}
+  {{ lp.facts(lib) }}
+  {%- if not (lib.documents or lib.limits or lib.facts) %}
+  {{ ui.empty("Nothing about this game yet", text="The archive holds no manuals, limits or facts for it. They are added at the archive.") }}
+  {%- endif %}
+  {%- elif g.model_key %}
+  {%- if lib_state and lib_state.refused %}
+  {{ ui.empty("The archive turned this application away", text="This machine is linked to " ~ g.model_key ~ ", but the archive refused the reader token, so nothing has been read. The owner issues a new token at the archive.") }}
+  {%- elif lib_state and lib_state.error %}
+  {{ ui.empty("The archive could not be reached", text="This machine is linked to " ~ g.model_key ~ ". The last attempt failed (" ~ lib_state.error ~ "). It tries again every ten minutes.") }}
+  {%- else %}
+  {{ ui.empty("Not read yet", text="This machine is linked to " ~ g.model_key ~ ". The library sends that game on the next pull, which runs every ten minutes.") }}
+  {%- endif %}
+  {%- endif %}
+  {%- if current_user.has_role("manager") %}
+  <form class="form" method="post" action="{{ url_for('library.link_machine', game_id=g.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+      <label for="model_key">Game key in the library</label>
+      <input id="model_key" name="model_key" type="text" value="{{ g.model_key or '' }}" maxlength="60"
+             pattern="[a-z0-9]+(-[a-z0-9]+)*" autocomplete="off" autocapitalize="none" spellcheck="false"
+             aria-describedby="model_key-help">
+      <small id="model_key-help" class="dim">Lowercase letters and digits with single hyphens, like widget-wars. Empty to unlink.</small>
+    </div>
+    <div class="form__actions"><button class="btn btn--sm" type="submit">Save link</button></div>
+  </form>
+  {%- endif %}
+</section>
+{%- endif %}

@@ -1,0 +1,18 @@
+# sha256 of every file in this directory, CHECKSUMS itself excepted.
+#
+# The library's read side is owned by GATBOX (docs/contract/library-v1/read/) and
+# vendored byte-identical into each hub at contract/library-v1/. A test in every
+# repository checks its copy against this list, and against any sibling checkout it
+# finds. Edit GATBOX's copy, then regenerate there with:
+#   bash docs/contract/checksums.sh --write docs/contract/library-v1/read
+
+e2611a6c5ceb51ff0710467ee343a6deb172c2b8a306d5cbb14846f24a979528  README.md
+86cc794aa109163b7789922c741bb73fd6489593ddfa2bedecd72fa74c1c57c3  examples/changes-response-all.json
+f4b7612be457f94817070842933b7918de03b8cc9e815c4d778a625ce133bdab  examples/changes-response-empty.json
+fd8725858ec956a7b0b8b5111b7b34cfa5eccfdf6907a51dd266560823eb44be  examples/changes-response-filtered.json
+f737ed2509d200fc01a2da03b5cd838a17304298ad68da28845e37073325b9d2  examples/changes-response-last.json
+20e8ea4cf2183c98782df7b507dc0e8e15aa9da309c03e3cb97f7467d999c374  examples/changes-response.json
+d01b53c1718a0e1dc595dd2f8bd20f51632aca64ee6f41bed7dc0195c02a6ba9  examples/error-not-found.json
+116639ab974ea2295a50c9e0dc0b204e8ca13f34013ef5ba3a3eb3afb9b714ae  examples/error-unauthorized.json
+f288b10193dc44ab42b4970f565c8eb936660ae0a90db6d9fae0422f13ff968a  examples/files-range-response.txt
+8cb5e649d329e8fd8d2117864d9882bf951f0683a1af321a52dc973a117fb170  examples/manual.pdf.b64

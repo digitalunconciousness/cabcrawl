@@ -1,0 +1,25 @@
+{
+  "records": [
+    {
+      "kind": "fact",
+      "id": "e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1",
+      "rev": 2,
+      "hash": "402f6a43a7c91a068c2b01bdbae1dda86b9b07e015e0fc5e83c72ea37dbced2b",
+      "deleted": true,
+      "at": 1760000000.0,
+      "by": "the deck",
+      "data": {
+        "model_key": "widget-wars",
+        "group": "monitor",
+        "what": "Chassis",
+        "value": "25 inch",
+        "doc_id": null,
+        "page": null,
+        "quote": ""
+      }
+    }
+  ],
+  "cursor": 11,
+  "more": false,
+  "head": 11
+}

@@ -197,6 +197,8 @@
 
   {% include "_roms.html" %}
 
+  {% include "_library.html" %}
+
   {#- Inventory step 6: the parts that fit it (operators), and what it has used (managers,
       like the work order history and its costs). -#}
   {%- if current_user.has_role("operator") and g.compatible_items %}
