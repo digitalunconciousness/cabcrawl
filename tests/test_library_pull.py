@@ -418,6 +418,63 @@ def test_the_command_prints_one_line_and_exits_0(deck, app, capsys):
     assert mod.main(app, []) == 0 and "no archive configured" in capsys.readouterr().out.splitlines()[-1]
 
 
+def _command():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("pull_library", os.path.join(os.path.dirname(EXAMPLES), "..", "..", "scripts", "pull_library.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_status_names_the_keys_that_are_held_missing_unread_or_not_game_keys(deck, app, capsys):
+    from app.extensions import db
+    from app.models import Game
+
+    mod = _command()
+    deck["other"].model_key = "sprocket-blaster"                       # the archive has no game with this key
+    db.session.add(Game(name="Bad Key Cabinet", barcode="bad-key-1", status="Working", location="Floor", model_key="Bad Key!"))
+    db.session.commit()
+    run()
+    db.session.add(Game(name="Late Cabinet", barcode="late-1", status="Working", location="Floor", model_key="later-game"))
+    db.session.commit()                                                 # named after the pull: the next one asks for it
+    assert mod.main(app, ["--status"]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert "7 records held" in lines[0]                                 # the first line is what it always was
+    text = "\n".join(lines[1:])
+    assert "keys: 4 named by machines: 1 held, 1 not at the archive, 1 not read yet, 1 not game keys" in text
+    assert "NOT AT THE ARCHIVE" in text and "sprocket-blaster  <-  Sprocket" in text
+    assert "not read yet (the next pull asks for these)" in text and "later-game  <-  Late Cabinet" in text
+    assert "not game keys" in text and "Bad Key!  <-  Bad Key Cabinet" in text
+    assert "widget-wars" not in text                                    # a held key is counted, not listed
+
+
+def test_status_stops_naming_a_key_once_the_game_is_added_at_the_archive(deck, app, capsys):
+    mod = _command()
+    deck["other"].model_key = "sprocket-blaster"
+    from app.extensions import db
+    db.session.commit()
+    run()
+    assert mod.main(app, ["--status"]) == 0
+    assert "sprocket-blaster  <-  Sprocket" in capsys.readouterr().out
+    game = copy.deepcopy(example("changes-response-all.json")["records"][0])
+    assert game["kind"] == "game"
+    game["id"], game["data"]["title"] = "sprocket-blaster", "Sprocket Blaster"
+    deck["archive"].put(game)
+    run()
+    assert mod.main(app, ["--status"]) == 0
+    out = capsys.readouterr().out
+    assert "keys: 2 named by machines: 2 held, 0 not at the archive, 0 not read yet" in out
+    assert "NOT AT THE ARCHIVE" not in out and "sprocket-blaster" not in out
+
+
+def test_status_with_no_machine_naming_a_game_says_so(app, capsys):
+    mod = _command()
+    app.config.update(LIBRARY_URL="http://archive.invalid", LIBRARY_TOKEN="gbx_a1b2c3d4e5f6.not-a-real-secret")
+    assert mod.main(app, ["--status"]) == 0
+    assert "no machine names a game yet" in capsys.readouterr().out
+
+
 # --- the settings ----------------------------------------------------------------------------------------------------------
 
 def _load(**env):

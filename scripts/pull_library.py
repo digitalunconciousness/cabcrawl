@@ -6,7 +6,8 @@ application's environment (create_app reads .env):
 
     /opt/arcade-tracker-venv/bin/python scripts/pull_library.py
 
-    --status    print how the last run went and what is held, and read nothing
+    --status    print how the last run went and what is held, then which game keys the machines name and what the
+                archive has said about each (held, not at the archive, not read yet), and read nothing
 
 Needs LIBRARY_ARCHIVE_URL and LIBRARY_ARCHIVE_TOKEN (a reader token) in .env; without them it says so and
 does nothing. It prints one line of counts, which the journal keeps. Exit codes: 0 for everything, including
@@ -42,6 +43,8 @@ def main(app=None, argv=None) -> int:
             print(f"library: {LibraryRecord.query.count()} records held; last tried "
                   f"{library.ago(st.last_try) if st else 'never'}, last read {library.ago(st.last_ok) if st else 'never'}"
                   + (f"; {st.error}" if st and st.error else ""))
+            for line in library.key_report_lines(library.key_report()):
+                print(line)
             return 0
         out = library_pull.run()
         print("library: " + " ".join(f"{k}={len(v) if isinstance(v, list) else v}" for k, v in out.items() if k != "configured"))
