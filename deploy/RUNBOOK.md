@@ -461,6 +461,10 @@ changes: the timer's runs say so and exit 0, and the app has no library section.
    LIBRARY_ARCHIVE_TOKEN=<the reader token>
    ```
 
+   `deploy/deploy.sh` reads `.env` as a shell script, so each setting is one `KEY=value` line: no space around the
+   `=`, and no line break inside the token. A line that isn't an assignment (a token pasted on a line of its
+   own) stops the deploy in its preflight with `<that text>: command not found`, before the backup or any change.
+
    Through the tunnel also `LIBRARY_ACCESS_CLIENT_ID` and `LIBRARY_ACCESS_CLIENT_SECRET` (a Cloudflare
    Access service token whose policy lets this path through). A URL that isn't just an address, a token that
    isn't `gbx_<id>.<secret>`, or one half of the pair stops the app at start-up with a message.
