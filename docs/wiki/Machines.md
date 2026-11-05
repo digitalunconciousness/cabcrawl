@@ -56,6 +56,10 @@ change anything, edit the game at the archive.
   can read it.
 - Managers link a machine to its game on the machine's page (**Game key in the library**, like `widget-wars`) and can
   clear a game no machine names any more. GATBOX's roster carries the same key.
+- **The archive has no game with this key** means the key was read from the archive and nothing there has it: a typo, or
+  a game nobody has added there yet (the deck sends the barcade's roster, so a machine that isn't on it needs its game
+  added at the archive first). Fix the key here, or add the game there and link the machine to the key it shows. The next
+  pull, within ten minutes, picks it up and the message goes.
 
 ## Problem reports from the coin door
 

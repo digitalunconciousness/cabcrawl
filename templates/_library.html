@@ -24,6 +24,8 @@
   {{ ui.empty("The archive turned this application away", text="This machine is linked to " ~ g.model_key ~ ", but the archive refused the reader token, so nothing has been read. The owner issues a new token at the archive.") }}
   {%- elif lib_state and lib_state.error %}
   {{ ui.empty("The archive could not be reached", text="This machine is linked to " ~ g.model_key ~ ". The last attempt failed (" ~ lib_state.error ~ "). It tries again every ten minutes.") }}
+  {%- elif lib_unknown %}
+  {{ ui.empty("The archive has no game with this key", text="This machine is linked to " ~ g.model_key ~ ", and the archive has no game with that key. Check the key for a typo, or add the game at the archive and link this machine to the key it shows there. A game added there is picked up by the next pull, which runs every ten minutes.") }}
   {%- else %}
   {{ ui.empty("Not read yet", text="This machine is linked to " ~ g.model_key ~ ". The library sends that game on the next pull, which runs every ten minutes.") }}
   {%- endif %}
