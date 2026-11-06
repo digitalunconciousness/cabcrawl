@@ -119,7 +119,7 @@
         {%- if page.can_record_plays %}
         <a class="btn btn--sm" href="{{ url_for('games.record_plays', game_id=g.id) }}">Record plays</a>
         {%- else %}
-        <span class="chip is-warn">Counter {{ g.counter_status|status_label|lower }}: plays can't be recorded</span>
+        <span class="chip chip--wrap is-warn">{{ g.counter_status|status_label }}: plays can't be recorded</span>
         {%- endif %}
       {%- endif %}
     </div>

@@ -50,6 +50,35 @@ def test_a_broken_counter_says_why_plays_cannot_be_recorded(client, floor):
     assert f"/record_plays/{floor['courier']}" not in body
 
 
+def test_the_broken_counter_chip_reads_once_and_wraps_instead_of_widening_the_page(client, floor):
+    """The chip said "Counter counter broken: ..." (the status label already starts with "Counter") and,
+    unable to wrap, was 391 px wide: a phone scrolled sideways. Its sentence now reads once and may wrap."""
+    body = page(client, floor, "operator", game="courier").replace("&#39;", "'")
+    assert "Counter counter" not in body
+    assert '<span class="chip chip--wrap is-warn">Counter broken: plays can\'t be recorded</span>' in body
+
+
+def test_a_machine_with_no_counter_reads_the_same_way(client, floor):
+    from app.extensions import db
+    from app.models import Game
+
+    db.session.get(Game, floor["courier"]).counter_status = "No_Counter"
+    db.session.commit()
+    body = page(client, floor, "operator", game="courier").replace("&#39;", "'")
+    assert "No counter: plays can't be recorded" in body and "Counter no counter" not in body
+
+
+def test_the_wrapping_chip_has_a_rule_that_lets_it_wrap():
+    """The class alone does nothing; the rule is what lets a sentence break at a phone's width."""
+    import re
+    from pathlib import Path
+
+    css = (Path(__file__).resolve().parents[2] / "static" / "css" / "components.css").read_text(encoding="utf-8")
+    rule = re.search(r"\.chip--wrap\s*\{([^}]*)\}", css)
+    assert rule, ".chip--wrap is not defined"
+    assert re.search(r"white-space:\s*normal", rule.group(1)) and re.search(r"max-width:\s*100%", rule.group(1))
+
+
 def test_an_operator_can_set_the_baseline_on_a_new_machine(client, floor):
     body = page(client, floor, "operator", game="courier")
     assert f'action="/add_baseline/{floor["courier"]}"' in body

@@ -90,6 +90,7 @@ played?" radios) and `per_unit` (price per unit wording).
    - regenerate the visibility snapshot (`UPDATE_SNAPSHOTS=1`) and check the diff;
    - add a test of what the page does.
 5. **Check it in a browser**: `tests/screenshots/take.py --only <endpoint>` for 390 and 1280,
-   and `tests/screenshots/csp_check.py` for script errors and policy violations.
+   and `tests/screenshots/csp_check.py` for script errors and policy violations. A machine page
+   must also not scroll sideways at 390 or 360: `tests/screenshots/overflow_check.py --library`.
 6. **If the component is new**, add it to `/styleguide` (`templates/styleguide.html`) in every
    state.
