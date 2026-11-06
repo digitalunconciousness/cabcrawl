@@ -13,7 +13,7 @@ knows about. It never reads ``instance/`` or ``.env``.
 
 ``--library`` also seeds a read-only copy of the library (the contract's two example games, as the pull
 job leaves them) and links two machines to it, so the Library pages and the machine page's game section
-are captured. Without it the arcade has no archive configured, as most installs don't.
+are captured. A third machine is linked to a key the archive does not hold, for the page that says so. Without it the arcade has no archive configured, as most installs don't.
 
 Files are named ``<endpoint>-<width>.png`` (``games.game_detail-390.png``), so the
 before and after sets line up by name even when a URL changes.
@@ -97,7 +97,9 @@ def _library(app, tmp: str, ids: dict) -> None:
     target.write_bytes(manual)
     db.session.get(Game, ids["raider"]).model_key = "widget-wars"
     db.session.get(Game, ids["pinball"]).model_key = "pin-comet-run"
-    db.session.add(LibraryState(id=1, cursor=11, keys_synced=["widget-wars", "pin-comet-run"],
+    # A third machine linked to a key the archive does not hold: read in full, so the page says so.
+    db.session.get(Game, ids["courier"]).model_key = "sprocket-blaster"
+    db.session.add(LibraryState(id=1, cursor=11, keys_synced=["widget-wars", "pin-comet-run", "sprocket-blaster"],
                                 last_ok=datetime.now(timezone.utc).replace(tzinfo=None), refused=False,
                                 records=len(records) + 2))
     db.session.commit()
@@ -135,7 +137,8 @@ def pages(ids: dict, library: bool = False):
         if ctype == "text/html":
             out.append((None, build(ids), "admin"))
     if library:
-        out += [("library.index", "/library/", "admin"), ("library.game_page", "/library/widget-wars", "admin")]
+        out += [("library.index", "/library/", "admin"), ("library.game_page", "/library/widget-wars", "admin"),
+                ("games.game_detail.unknown_key", f"/game/{ids['courier']}", "admin")]
     return out
 
 

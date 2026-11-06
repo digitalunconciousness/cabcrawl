@@ -111,6 +111,52 @@ def test_a_machine_whose_game_isnt_read_yet_says_which_game_and_why_nothing_show
     assert "could not be reached" in text(client.get(f"/game/{deck['machine'].id}"))
 
 
+def sprocket_game():
+    """A game the stub archive does not hold at first: the contract's own example, renamed."""
+    rec = copy.deepcopy(example("changes-response-all.json")["records"][0])
+    rec["id"], rec["rev"] = "sprocket-blaster", 1
+    rec["data"]["title"] = "Sprocket Blaster"
+    return rec
+
+
+def link_to(deck, key):
+    from app.extensions import db
+
+    deck["machine"].model_key = key
+    db.session.commit()
+
+
+def test_a_key_the_archive_does_not_hold_says_so_until_the_game_is_added(deck, client):
+    link_to(deck, "sprocket-blaster")
+    sign_in(client, "readonly")
+    # Not read yet: only the pull's own words, since nothing says the archive lacks it.
+    page = text(client.get(f"/game/{deck['machine'].id}"))
+    assert "Not read yet" in page and "has no game with that key" not in page
+    pull()
+    page = text(client.get(f"/game/{deck['machine'].id}"))
+    assert "The archive has no game with this key" in page and "sprocket-blaster" in page and "Not read yet" not in page
+    # Someone adds the game at the archive: the next pull brings it, and the message goes.
+    deck["archive"].put(sprocket_game())
+    pull()
+    page = text(client.get(f"/game/{deck['machine'].id}"))
+    assert "Sprocket Blaster" in page and "has no game with that key" not in page
+
+
+def test_a_refused_token_or_an_unreachable_archive_is_said_before_a_missing_key(deck, client):
+    link_to(deck, "sprocket-blaster")
+    sign_in(client, "readonly")
+    pull()
+    assert "has no game with that key" in text(client.get(f"/game/{deck['machine'].id}"))
+    deck["archive"].token = "gbx_a1b2c3d4e5f6.someone-elses"
+    pull()
+    page = text(client.get(f"/game/{deck['machine'].id}"))
+    assert "turned this application away" in page and "has no game with that key" not in page
+    deck["stub"].stop()
+    pull()
+    page = text(client.get(f"/game/{deck['machine'].id}"))
+    assert "could not be reached" in page and "has no game with that key" not in page
+
+
 def test_a_machine_with_no_game_shows_no_section_to_operators(deck, client):
     sign_in(client, "operator")
     assert "Manual and limits" not in text(client.get(f"/game/{deck['other'].id}"))

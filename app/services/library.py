@@ -115,6 +115,19 @@ def game(key: str) -> dict | None:
             "images": images, "refreshed": refreshed()}
 
 
+def key_unknown(machine: Game) -> bool:
+    """True when the archive was asked for this machine's game from the start and holds no game with that key: a typo,
+    or a game nobody has added there yet. False before the key's first read, and while the pull is refused or failing
+    (the page has its own words for those). The pull keeps asking for the key, so this clears by itself once the game exists."""
+    key = machine.model_key
+    if not configured() or not valid_key(key):
+        return False
+    st = state()
+    if st is None or st.refused or st.error or key not in (st.keys_synced or []):
+        return False
+    return game(key) is None
+
+
 def for_machine(machine: Game) -> dict | None:
     """The game section of a machine's page: None when there's nothing to show (no archive, no key, or the key isn't held yet)."""
     if not configured() or not machine.model_key:

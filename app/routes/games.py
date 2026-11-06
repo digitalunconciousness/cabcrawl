@@ -116,13 +116,15 @@ def game_detail(game_id):
 
     game = db.get_or_404(Game, game_id)
     page = machine_page(game)
+    lib = library.for_machine(game)
     return render_template(
         "game_detail.html",
         page=page,
         game=game,
         roms=rom_ingest.for_game(game.id),
-        lib=library.for_machine(game),
+        lib=lib,
         lib_state=library.state() if library.configured() else None,
+        lib_unknown=lib is None and library.key_unknown(game),
         rail_verdict=verdict_of(page.rail_last) if page.rail_last else None,
         priorities=["Low", "Medium", "High", "Critical"],
     )
