@@ -164,6 +164,53 @@ def listing() -> list[dict]:
     return out
 
 
+def key_report() -> dict:
+    """Every key a machine names, sorted by what the archive has said about it, for a person at the console:
+    held (the archive sent the game), missing (read from the start and the archive has no game with that key: a typo, or
+    a game nobody has added there), unread (not read yet; the next pull asks) and invalid (not a game key at all, so
+    never asked for). Each is {key: [the names of the machines that name it]}."""
+    st = state()
+    read = set(st.keys_synced or []) if st else set()
+    named: dict[str, list[str]] = {}
+    for m in Game.query.filter(Game.model_key.isnot(None)).order_by(Game.name).all():
+        named.setdefault(m.model_key, []).append(m.name)
+    out: dict[str, dict[str, list[str]]] = {"held": {}, "missing": {}, "unread": {}, "invalid": {}}
+    for key, names in sorted(named.items()):
+        if not valid_key(key):
+            out["invalid"][key] = names
+        elif game(key) is not None:
+            out["held"][key] = names
+        elif key in read:
+            out["missing"][key] = names
+        else:
+            out["unread"][key] = names
+    return out
+
+
+def key_report_lines(report: dict, limit: int = 20) -> list[str]:
+    """key_report() as the lines `pull_library.py --status` prints under its first line."""
+    total = sum(len(v) for v in report.values())
+    if not total:
+        return ["no machine names a game yet (a manager links one on the machine's page)"]
+
+    def group(title: str, rows: dict) -> list[str]:
+        if not rows:
+            return []
+        lines = [f"  {title}"]
+        for key, names in list(rows.items())[:limit]:
+            lines.append(f"    {key}  <-  {', '.join(names[:4])}" + (f" and {len(names) - 4} more" if len(names) > 4 else ""))
+        if len(rows) > limit:
+            lines.append(f"    ... and {len(rows) - limit} more")
+        return lines
+
+    head = (f"keys: {total} named by machines: {len(report['held'])} held, {len(report['missing'])} not at the archive, "
+            f"{len(report['unread'])} not read yet" + (f", {len(report['invalid'])} not game keys" if report["invalid"] else ""))
+    return ([head]
+            + group("NOT AT THE ARCHIVE (read in full, and it has no game with that key: fix the key here, or add the game there)", report["missing"])
+            + group("not read yet (the next pull asks for these)", report["unread"])
+            + group("not game keys (lowercase words joined by hyphens; these are never asked for)", report["invalid"]))
+
+
 def clear(key: str) -> int:
     """A manager clears a game no machine names any more: its records go, and so do manuals only it held. -> rows removed."""
     docs = LibraryRecord.query.filter_by(model_key=key, kind="document").all()

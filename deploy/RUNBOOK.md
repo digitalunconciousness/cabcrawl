@@ -491,7 +491,9 @@ changes: the timer's runs say so and exit 0, and the app has no library section.
    The first run only shows what it would link. A machine that already has a different key (set by hand on its
    page) is listed and left alone; `--force` replaces it. Delete the plan from the container afterwards. After
    this, managers change a link on the machine page, and GATBOX's roster carries each machine's key.
-5. `python scripts/pull_library.py --status` says how the last run went and what is held.
+5. `python scripts/pull_library.py --status` says how the last run went and what is held. Under that line it lists the
+   game keys the machines name: how many the archive sent, and by name the ones it has no game for (a typo in the
+   key, or a game nobody has added at the archive yet), the ones not read yet, and anything that is not a game key.
 
 The manuals are in `uploads/library_files/`, so the uploads backup carries them; the pull fetches them again if a
 restore leaves some out.
