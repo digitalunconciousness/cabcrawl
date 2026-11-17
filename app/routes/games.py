@@ -91,9 +91,16 @@ def add_game():
     taken = {b for (b,) in db.session.query(Game.barcode).all() if b}
     game = Game(barcode=generate_unique_barcode(values["name"], taken), image_filename=image)
     apply_machine_values(game, values)
+    # Its game in GATBOX's library, from its name, so a new game reaches the archive without anyone going there (the owner,
+    # 2026-11-17). A manager changes it on the machine page if the name isn't the game's.
+    if not game.model_key:
+        from app.services import library
+        game.model_key = library.key_from_name(game.name)
     db.session.add(game)
     db.session.flush()
     message = f'Added "{game.name}".'
+    if game.model_key:
+        message += f" Its game key is {game.model_key}; a manager can change it on the machine page."
     if values["initial_coin_count"] is not None and game.counter_status == "Working":
         set_baseline(game, values["initial_coin_count"], "Initial baseline coin count")
         message += f" Starting meter reading: {values['initial_coin_count']:,}."

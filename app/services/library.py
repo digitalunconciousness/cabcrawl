@@ -32,6 +32,19 @@ def valid_key(key: str) -> bool:
     return bool(key) and len(key) <= KEY_MAX and bool(KEY.match(key)) and key != "unassigned"
 
 
+def key_from_name(name: str) -> str | None:
+    """A game key from a machine's name, by the library's own rule (GATBOX's gatboxlib.library.slug: lower-case words joined
+    by hyphens, apostrophes dropped, "&" read as "and", accents folded to ASCII), with the cabinet number on the end ("#2")
+    left off: it is the machine's, not the game's. GATBOX makes the game from the key if the library hasn't got it, and asks
+    the owner first when it reads like a game it has (the owner, 2026-11-17). None when nothing usable is left."""
+    import unicodedata
+    base = re.sub(r"\s*#\s*\d+\s*$", "", name or "")
+    s = unicodedata.normalize("NFKD", base).encode("ascii", "ignore").decode().lower()
+    s = re.sub(r"['’`]", "", s.replace("&", " and "))
+    key = "-".join(re.findall(r"[a-z0-9]+", s))[:KEY_MAX].rstrip("-")
+    return key if valid_key(key) else None
+
+
 def state() -> LibraryState | None:
     return db.session.get(LibraryState, 1)
 
