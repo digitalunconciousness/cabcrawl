@@ -33,6 +33,17 @@ ProtectControlGroups=yes
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 RestrictSUIDSGID=yes
 LockPersonality=yes
+# 2026-11-17's security pass: the rest of the kernel out of reach, no capabilities, and the ordinary service system calls.
+ProtectKernelLogs=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+CapabilityBoundingSet=
+AmbientCapabilities=
 ReadWritePaths=/opt/arcade-tracker/instance
 ReadWritePaths=/opt/arcade-tracker/uploads
 ReadWritePaths=/opt/arcade-tracker/backups
