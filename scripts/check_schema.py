@@ -38,6 +38,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Keep in step with migrations/versions/.
 INTRODUCED_BY = {
     ("maintenance_record", "priority"): "ebead5244def",
+    ("user", "desk_theme"): "a7b8c9d0e1f2",
     ("inventory_request", "maintenance_id"): "3e5463d29981",
     ("inventory_request", "tracking_number"): "e7582856b8aa",
     ("inventory_request", "vendor"): "e7582856b8aa",
@@ -142,6 +143,7 @@ PREDECESSOR = {
     "c4d5e6f7a8b9": "b3c4d5e6f7a8",
     "e5f6a7b8c9d0": "c4d5e6f7a8b9",
     "f6a7b8c9d0e1": "e5f6a7b8c9d0",
+    "a7b8c9d0e1f2": "f6a7b8c9d0e1",
 }
 
 # Every index app/models/indexes.py declares came from this revision.
@@ -155,7 +157,7 @@ ORDER = ["5a026e6869ec", "ebead5244def", "3e5463d29981", "e7582856b8aa",
          "b6c7d8e9f0a1", "c8d9e0f1a2b3", "d9e0f1a2b3c4",
          "e0f1a2b3c4d5", "f1a2b3c4d5e6",
          "a2b3c4d5e6f7", "b3c4d5e6f7a8",
-         "c4d5e6f7a8b9", "e5f6a7b8c9d0", "f6a7b8c9d0e1"]
+         "c4d5e6f7a8b9", "e5f6a7b8c9d0", "f6a7b8c9d0e1", "a7b8c9d0e1f2"]
 
 
 def check_encoding(db) -> dict | None:

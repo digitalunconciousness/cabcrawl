@@ -10,6 +10,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from app.extensions import db
 
 
+DESK_THEMES = {"synthwave": "Synthwave", "ledger": "Ledger (light)", "graphite": "Graphite (dark)",
+               "system": "Follow the system (Ledger, or Graphite when the device is dark)"}
+
+
 class User(UserMixin, db.Model):
     """Application user with role-based access control.
 
@@ -29,6 +33,9 @@ class User(UserMixin, db.Model):
     must_change_password: bool = db.Column(db.Boolean, default=True)
     profile_picture: str | None = db.Column(db.String(255), nullable=True)
     last_login: datetime | None = db.Column(db.DateTime, nullable=True)
+    # The look on a computer (1024 px and wider): one of DESK_THEMES. Phones always get synthwave (the owner,
+    # 2026-11-21, matching the Tech Tracker's "Desktop look"). Changed on Profile.
+    desk_theme: str = db.Column(db.String(10), nullable=False, default="synthwave", server_default="synthwave")
 
     ROLE_HIERARCHY: dict[str, int] = {
         "readonly": 1,

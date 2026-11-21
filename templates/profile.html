@@ -29,6 +29,21 @@
     </div>
   </section>
 
+  <section class="card" id="look" aria-labelledby="look-title">
+    <h2 id="look-title">Desktop look</h2>
+    <p class="dim">On a computer or a tablet held sideways (1024 px and wider). Phones always use Synthwave.</p>
+    <form class="form" method="post" action="{{ url_for('auth.profile_theme') }}" novalidate>
+      {{ theme_form.csrf_token }}
+      <fieldset class="stack">
+        <legend>Look</legend>
+        {%- for opt in theme_form.desk_theme %}
+        <div class="field field--check">{{ opt() }}{{ opt.label() }}</div>
+        {%- endfor %}
+      </fieldset>
+      <div class="form__actions"><button class="btn btn--primary" type="submit">Save</button></div>
+    </form>
+  </section>
+
   <section class="card" aria-labelledby="account-title">
     <h2 id="account-title">Account</h2>
     <dl class="kv">

@@ -18,7 +18,7 @@
     dim: token("--text-dim"),
     surface: token("--surface-raised"),
     border: token("--border-control"),
-    grid: "rgba(163, 148, 196, 0.14)",
+    grid: token("--chart-grid"),
     accent: token("--accent"),
     ok: token("--ok"),
     warn: token("--warn"),

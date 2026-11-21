@@ -4,6 +4,7 @@
     python tests/screenshots/take.py docs/design/before
     python tests/screenshots/take.py docs/design/after --only games.games_list
     python tests/screenshots/take.py docs/design/library --library --only library.index
+    python tests/screenshots/take.py docs/design/ledger --theme ledger --only dashboard.home
 
 Development only (Playwright is in requirements-dev.txt). It builds a throwaway SQLite
 database in a temporary folder, seeds the synthetic arcade from
@@ -149,6 +150,8 @@ def main() -> int:
                         help="capture only this endpoint (repeatable)")
     parser.add_argument("--library", action="store_true",
                         help="seed a read-only library copy and capture its pages too")
+    parser.add_argument("--theme", choices=["synthwave", "ledger", "graphite", "system"], default="synthwave",
+                        help="the signed-in user's desktop look (applies at 1280; 390 is always synthwave)")
     args = parser.parse_args()
     args.outdir.mkdir(parents=True, exist_ok=True)
 
@@ -161,6 +164,12 @@ def main() -> int:
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
     tmp = tempfile.mkdtemp(prefix="arcade-shots-")
     app, ids = build_app(tmp, library=args.library)
+    if args.theme != "synthwave":
+        from app.extensions import db
+        from app.models import User
+        with app.app_context():
+            User.query.filter_by(username="test-admin").one().desk_theme = args.theme
+            db.session.commit()
     server = make_server("127.0.0.1", 0, app, threaded=True)
     base = f"http://127.0.0.1:{server.server_port}"
     threading.Thread(target=server.serve_forever, daemon=True).start()

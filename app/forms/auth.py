@@ -6,6 +6,7 @@ from wtforms import (
     BooleanField,
     FileField,
     PasswordField,
+    RadioField,
     StringField,
     SubmitField,
 )
@@ -38,3 +39,13 @@ class ProfileForm(FlaskForm):
         validators=[FileAllowed(["jpg", "jpeg", "png", "gif"],
                                 "That isn't a photo. Use PNG, JPG or GIF.")],
     )
+
+
+class ThemeForm(FlaskForm):
+    """The desktop look (Profile). Phones always use synthwave."""
+    desk_theme = RadioField("Desktop look", validators=[DataRequired()], choices=[])
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from app.models.user import DESK_THEMES
+        self.desk_theme.choices = list(DESK_THEMES.items())

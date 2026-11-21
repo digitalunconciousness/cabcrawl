@@ -23,7 +23,11 @@
 .dim {
   color: var(--text-dim);
 }
-.num {
+.num,
+code,
+kbd,
+samp {
+  font-family: var(--font-mono);   /* the body font in Synthwave; IBM Plex Mono in Ledger and Graphite */
   font-variant-numeric: tabular-nums;
 }
 .stack {
@@ -80,7 +84,7 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(21, 10, 40, 0.94);
+  background: var(--surface-header);
   border-bottom: 1px solid var(--border);
 }
 .app-header__bar {
@@ -424,7 +428,7 @@
 }
 /* Only a fault glows: it is the one state that should pull the eye across a room. */
 .chip.is-fault {
-  box-shadow: 0 0 8px rgba(255, 77, 109, 0.35);
+  box-shadow: var(--glow-fault);
 }
 
 .badge {
@@ -698,7 +702,7 @@ a.row:hover {
   border-bottom: 0;
 }
 .table tbody tr:hover {
-  background: rgba(40, 24, 78, 0.5);
+  background: var(--surface-hover);
 }
 .table .num {
   text-align: right;
@@ -935,11 +939,11 @@ legend {
   padding: var(--sp-5);
   border: 1px solid var(--border-control);
   border-radius: var(--r-lg);
-  background: var(--c-bg2);
+  background: var(--surface-dialog);
   color: var(--text);
 }
 .dialog::backdrop {
-  background: rgba(10, 4, 22, 0.86);
+  background: var(--backdrop);
 }
 .dialog__title {
   margin-bottom: var(--sp-2);
@@ -959,7 +963,7 @@ legend {
   position: relative;
   min-height: 240px;
   padding: var(--sp-3);
-  background: rgba(31, 18, 64, 0.55);
+  background: var(--surface-chart);
   border: 1px solid var(--border);
   border-radius: var(--r);
 }
