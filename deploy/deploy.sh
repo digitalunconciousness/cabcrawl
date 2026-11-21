@@ -3,8 +3,13 @@
 # up first, then pulls, installs, migrates, restarts and checks that the site
 # answers. Stops at the first failure and never carries on past a bad step.
 #
-#   deploy/deploy.sh            # deploy          (run as root)
-#   deploy/deploy.sh --check    # preflight only: change nothing
+#   deploy/deploy.sh                 # deploy the tip of the branch   (run as root)
+#   deploy/deploy.sh v2026.11.21     # deploy that release, forward or back
+#   deploy/deploy.sh --check [TAG]   # preflight only: change nothing
+#
+# A TAG is a release (.github/workflows/release.yml makes one when a v* tag is pushed and
+# CI passes on it). It must be on the branch's history. Going back to one is refused when
+# the code would lose a migration the database already has: downgrade first (RUNBOOK: Rollback).
 #
 # The database is PostgreSQL on another host, so the backup is a pg_dump, not a
 # file copy. DATABASE_URL comes from .env and is never printed.
@@ -22,7 +27,14 @@ BRANCH=${ARCADE_BRANCH:-master}
 KEEP=${ARCADE_KEEP:-14}
 
 check_only=0
-[ "${1:-}" = "--check" ] && check_only=1
+tag=""
+for arg in "$@"; do
+    case "$arg" in
+        --check) check_only=1 ;;
+        v*) [ -z "$tag" ] || { printf 'one release at a time\n' >&2; exit 2; }; tag=$arg ;;
+        *) printf 'usage: deploy/deploy.sh [--check] [vTAG]\n' >&2; exit 2 ;;
+    esac
+done
 
 step() { printf '\n==> %s\n' "$*"; }
 die()  { printf '\nFAILED: %s\n' "$*" >&2; exit 1; }
@@ -53,6 +65,14 @@ if [ -n "$untracked" ]; then
 fi
 current=$(git rev-parse --abbrev-ref HEAD)
 [ "$current" = "$BRANCH" ] || die "on branch '$current', expected '$BRANCH' (set ARCADE_BRANCH to override)"
+
+target=""
+if [ -n "$tag" ]; then
+    git fetch --quiet --tags origin "$BRANCH" || die "git fetch failed"
+    # shellcheck source=deploy/release.sh
+    . "$REPO/deploy/release.sh"
+    target=$(release_target "$tag" "$BRANCH" migrations/versions/) || die "not deploying $tag"
+fi
 
 # shellcheck disable=SC1091
 set -a; . "$REPO/.env"; set +a
@@ -89,6 +109,7 @@ if [ "$dump_major" -lt "$server_major" ]; then
     die "pg_dump $dump_major is too old for server $server_major"
 fi
 printf '    health        : %s\n' "$HEALTH"
+[ -z "$tag" ] || printf '    release       : %s (%s)\n' "$tag" "$(git rev-parse --short "$target")"
 
 if [ "$check_only" = 1 ]; then
     step "Preflight only (--check): nothing was changed."
@@ -121,13 +142,22 @@ uploads="$BACKUPS/arcade_tracker-uploads-$stamp.tar.gz"
     || die "the uploads backup failed; nothing has changed yet (the database dump is $dump)"
 chmod 600 "$uploads"
 
-# --- 2. pull ------------------------------------------------------------------
-step "Pulling $BRANCH"
+# --- 2. pull (or move to the release) -------------------------------------------
 before=$(git rev-parse HEAD)
-git pull --ff-only origin "$BRANCH" || die "git pull --ff-only refused; the branches have diverged"
+if [ -n "$tag" ]; then
+    # The branch itself moves to the release, so the next plain deploy still fast-forwards.
+    step "Moving $BRANCH to $tag"
+    git reset --quiet --hard "$target" || die "could not move to $tag"
+else
+    step "Pulling $BRANCH"
+    git pull --ff-only origin "$BRANCH" || die "git pull --ff-only refused; the branches have diverged"
+fi
 after=$(git rev-parse HEAD)
 if [ "$before" = "$after" ]; then
     printf '    already up to date (%s)\n' "$(git rev-parse --short HEAD)"
+elif git merge-base --is-ancestor "$after" "$before"; then
+    printf '    back to %s; these leave:\n' "$(git rev-parse --short HEAD)"
+    git --no-pager log --oneline "$after..$before" | sed 's/^/      /'
 else
     git --no-pager log --oneline "$before..$after" | sed 's/^/    /'
 fi
@@ -194,4 +224,4 @@ ls -1t "$BACKUPS"/arcade_tracker-uploads-*.tar.gz 2>/dev/null | tail -n +$((KEEP
     rm -f -- "$old"; printf '    removed %s\n' "$(basename "$old")"
 done
 
-step "Deployed $(git rev-parse --short HEAD) and the site answers."
+step "Deployed ${tag:+$tag, }$(git rev-parse --short HEAD) and the site answers."
