@@ -1,0 +1,37 @@
+name: codeql
+
+# GitHub's code scanning, free on a public repository. It reads the Python (app/,
+# scripts/), the JavaScript in static/js/ and these workflows, looking for injection,
+# path traversal and the like. Findings land under Security -> Code scanning; each one is a
+# claim to check, not a verdict, and none of them fails a PR on its own.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '53 10 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}
