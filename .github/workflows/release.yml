@@ -1,0 +1,34 @@
+name: release
+
+# A release is a tag on master that CI passed (deploy/RUNBOOK.md, "Releases"). Push a v* tag
+# (a date: v2026.11.21) and this runs the whole of tests.yml on that commit; only if it passes
+# does it make the GitHub release, its notes the PRs merged since the last one. deploy.sh vTAG
+# then deploys it, or goes back to it.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/tests.yml
+
+  release:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # deploy.sh refuses a tag that isn't on master's history; so does this, before anything
+      # is published.
+      - name: The tag is on master
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/master
+      - name: Make the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"

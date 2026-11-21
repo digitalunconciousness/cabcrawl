@@ -41,6 +41,33 @@ machine and part images, branding), any photos still in `static/maintenance_phot
 `/var/backups/arcade-tracker` (Admin, Storage shows the photos' share). Restoring is under
 "Restoring photos and uploads".
 
+## Releases
+
+A release is a tag on master that CI passed: when a `v*` tag is pushed,
+`.github/workflows/release.yml` runs the whole CI on that commit and, only if it passes, makes the
+GitHub release with the list of PRs merged since the last one. Versions are dates. From your own
+clone, on the commit you are about to deploy (normally the tip of master):
+
+```bash
+git tag -a v2026.11.21 -m "deployed 2026-11-21"
+```
+
+```bash
+git push origin v2026.11.21
+```
+
+Then, on the server, deploy that release rather than the tip:
+
+```bash
+/opt/arcade-tracker/deploy/deploy.sh --check v2026.11.21
+/opt/arcade-tracker/deploy/deploy.sh v2026.11.21
+```
+
+The same command goes back to an earlier release. The branch itself moves to the release, so a
+later plain `deploy.sh` still pulls forward from there. Going back is refused, before anything
+changes, when the release predates a migration the database may already have (the old code can't
+upgrade past a revision it doesn't know): downgrade it first, under Rollback.
+
 ## One-time: Secure cookies through the tunnel (Step 5.1)
 
 The app now refuses to start without `SECRET_KEY`, and marks its cookies `Secure` on HTTPS
@@ -646,6 +673,20 @@ session. Two things it is worth knowing when one looks wrong:
 Device tokens are issued with `scripts/create_device.py --name gatbox-01` and shown once.
 
 ## Rollback
+
+**To an earlier release** with no migration since it: `deploy.sh v<that release>` (under
+Releases). It takes the usual backup first.
+
+**Past a migration:** downgrade the database while the newer code is still in place, then deploy
+the release. `<revision>` is the newest migration that release has (`git show
+v<release>:migrations/versions/` lists them; the revision is in each file's header):
+
+```bash
+cd /opt/arcade-tracker && (set -a; . ./.env; set +a; /opt/arcade-tracker-venv/bin/flask --app run:app db downgrade <revision>)
+/opt/arcade-tracker/deploy/deploy.sh v<release>
+```
+
+**By hand, to the commit before a failed deploy:**
 
 ```bash
 git -C /opt/arcade-tracker reset --hard <previous-sha>
