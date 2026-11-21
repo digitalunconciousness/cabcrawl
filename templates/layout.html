@@ -18,7 +18,7 @@
 {%- if request.endpoint == "games.scan" %}{% set section = "scan" %}{% endif -%}
 {%- if request.endpoint == "maintenance.maintenance_reports" %}{% set section = "reports" %}{% endif -%}
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="{{ current_user.desk_theme if current_user.is_authenticated else 'synthwave' }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -60,6 +60,8 @@ resets a password.
 4. Build your [places](Inventory#places) and add the parts you keep.
 5. Set up [alerts](Alerts) so the techs hear about machines down.
 
+Each person can choose how the app looks on a computer under **Profile → Desktop look**: Synthwave (the default), Ledger (light), Graphite (dark) or Follow the system. Phones always use Synthwave.
+
 ## Production
 
 Production runs under systemd behind a Cloudflare tunnel, with PostgreSQL. The repository's

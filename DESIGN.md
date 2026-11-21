@@ -21,9 +21,11 @@ do, cyan for links, and green, amber and red only for status.
 
 ## Themes
 
-Four, chosen per user, at every width (decided 2026-10-28, being built): **Synthwave** (the default),
-**Ledger** (light, professional), **Graphite** (dark, professional) and **Follow system** (Ledger or
-Graphite, as the device says). Components use roles (`--surface`, `--text`, `--accent`, `--ok`,
+Four, chosen per user on Profile → Desktop look (decided 2026-10-28; built 2026-11-21): **Synthwave**
+(the default), **Ledger** (light, professional), **Graphite** (dark, professional) and **Follow system**
+(Ledger, or Graphite when the device is dark). **Desktop only** (1024 px and wider): a phone always gets
+Synthwave (the owner, 2026-11-21, matching the Tech Tracker's Desktop look). Ledger and Graphite use the
+tracker's colours, so the two apps look the same; they live in `static/css/tokens.css`. Components use roles (`--surface`, `--text`, `--accent`, `--ok`,
 `--warn`, `--fault`, `--info`), never a raw colour.
 
 - **Synthwave is deliberate.** The deep violet gradient, the neon palette (magenta

@@ -47,6 +47,14 @@
   --border-control: var(--c-control);
   --focus: var(--c-cyan);
 
+  /* --- Surfaces the components used to hard-code (2026-11-21, for the themes) ---------- */
+  --surface-header: rgba(21, 10, 40, 0.94);
+  --surface-chart: rgba(31, 18, 64, 0.55);
+  --surface-hover: rgba(40, 24, 78, 0.5);
+  --surface-dialog: var(--c-bg2);
+  --backdrop: rgba(10, 4, 22, 0.86);
+  --chart-grid: rgba(163, 148, 196, 0.14);
+
   /* --- Accent ------------------------------------------------------------------------ */
   --accent: var(--c-mag);
   --accent-tint: rgba(255, 46, 159, 0.12);
@@ -66,6 +74,7 @@
   /* --- Type -------------------------------------------------------------------------- */
   --font-display: "Chakra Petch", system-ui, sans-serif;
   --font-body: "Share Tech Mono", ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+  --font-mono: "Share Tech Mono", ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;  /* codes, tags, numbers */
   --fs-xs: 0.8125rem;   /* 13px: table headers, badge text */
   --fs-sm: 0.875rem;    /* 14px: secondary lines */
   --fs-base: 1rem;      /* 16px: body. Never smaller for body text on a phone */
@@ -98,6 +107,7 @@
   --glow-accent: 0 0 10px rgba(255, 46, 159, 0.35);
   --glow-accent-inset: inset 0 0 10px rgba(255, 46, 159, 0.30);
   --glow-brand: 0 0 12px rgba(255, 46, 159, 0.55);
+  --glow-fault: 0 0 8px rgba(255, 77, 109, 0.35);
   --scanline-alpha: 0.14;
   --dur: 150ms;
 }
@@ -105,5 +115,150 @@
 @media (prefers-reduced-motion: reduce) {
   :root {
     --dur: 0ms;
+  }
+}
+
+
+/* --- Desktop themes (DESIGN.md: decided 2026-10-28, built 2026-11-21 to match the Tech Tracker) -----------
+ * At 1024 px and wider, each user's choice: Synthwave (:root above, the default), Ledger (light), Graphite (dark),
+ * or Follow system (Ledger, or Graphite when the device asks for dark). Phones always get Synthwave (the owner,
+ * 2026-11-21). The colours are the tracker's, so the two apps look the same; Ledger's green and amber are one
+ * step darker in both, to read at 4.5:1 on the raised grey. The layout sets data-theme on <html>; no script.
+ * tests/test_design_tokens.py checks each theme's contrast and that "system" copies Ledger and Graphite exactly. */
+@media (min-width: 64rem) {
+  :root[data-theme="ledger"],
+  :root[data-theme="system"] {
+    color-scheme: light;
+    --surface-page: #f6f7f9;
+    --surface-page-top: #f6f7f9;
+    --surface: #ffffff;
+    --surface-raised: #eef1f4;
+    --surface-inset: #f6f7f9;
+    --surface-header: rgba(246, 247, 249, 0.94);
+    --surface-chart: #ffffff;
+    --surface-hover: #eef1f4;
+    --surface-dialog: #ffffff;
+    --backdrop: rgba(31, 35, 40, 0.5);
+    --chart-grid: rgba(31, 35, 40, 0.12);
+    --text: #1f2328;
+    --text-dim: #5f6b7a;
+    --text-on-accent: #ffffff;
+    --link: #0b5f8a;
+    --border: #dfe3e8;
+    --border-control: #7d8794;
+    --focus: #0b5f8a;
+    --accent: #0f6e6e;
+    --accent-tint: rgba(15, 110, 110, 0.09);
+    --ok: #17752f;
+    --ok-tint: rgba(23, 117, 47, 0.09);
+    --warn: #875b00;
+    --warn-tint: rgba(135, 91, 0, 0.09);
+    --fault: #b42318;
+    --fault-tint: rgba(180, 35, 24, 0.09);
+    --info: #0b5f8a;
+    --info-tint: rgba(11, 95, 138, 0.09);
+    --muted: #5f6b7a;
+    --muted-tint: rgba(95, 107, 122, 0.09);
+    --font-display: "IBM Plex Sans", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+    --track-display: 0;
+    --r: 4px;
+    --r-lg: 6px;
+    --glow-accent: none;
+    --glow-accent-inset: none;
+    --glow-brand: none;
+    --glow-fault: none;
+    --scanline-alpha: 0;
+  }
+  :root[data-theme="graphite"] {
+    color-scheme: dark;
+    --surface-page: #0f1216;
+    --surface-page-top: #0f1216;
+    --surface: #171b21;
+    --surface-raised: #1f252d;
+    --surface-inset: #0f1216;
+    --surface-header: rgba(15, 18, 22, 0.94);
+    --surface-chart: #171b21;
+    --surface-hover: #1f252d;
+    --surface-dialog: #171b21;
+    --backdrop: rgba(0, 0, 0, 0.6);
+    --chart-grid: rgba(229, 231, 235, 0.10);
+    --text: #e5e7eb;
+    --text-dim: #8b93a1;
+    --text-on-accent: #0f1216;
+    --link: #6ea8ff;
+    --border: #2a313b;
+    --border-control: #6b7480;
+    --focus: #6ea8ff;
+    --accent: #4f8cff;
+    --accent-tint: rgba(79, 140, 255, 0.12);
+    --ok: #34c38f;
+    --ok-tint: rgba(52, 195, 143, 0.12);
+    --warn: #f0b429;
+    --warn-tint: rgba(240, 180, 41, 0.12);
+    --fault: #ef5d5d;
+    --fault-tint: rgba(239, 93, 93, 0.12);
+    --info: #6ea8ff;
+    --info-tint: rgba(110, 168, 255, 0.12);
+    --muted: #8b93a1;
+    --muted-tint: rgba(139, 147, 161, 0.12);
+    --font-display: "IBM Plex Sans", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+    --track-display: 0;
+    --r: 4px;
+    --r-lg: 6px;
+    --glow-accent: none;
+    --glow-accent-inset: none;
+    --glow-brand: none;
+    --glow-fault: none;
+    --scanline-alpha: 0;
+  }
+}
+@media (min-width: 64rem) and (prefers-color-scheme: dark) {
+  :root[data-theme="system"] {
+    color-scheme: dark;
+    --surface-page: #0f1216;
+    --surface-page-top: #0f1216;
+    --surface: #171b21;
+    --surface-raised: #1f252d;
+    --surface-inset: #0f1216;
+    --surface-header: rgba(15, 18, 22, 0.94);
+    --surface-chart: #171b21;
+    --surface-hover: #1f252d;
+    --surface-dialog: #171b21;
+    --backdrop: rgba(0, 0, 0, 0.6);
+    --chart-grid: rgba(229, 231, 235, 0.10);
+    --text: #e5e7eb;
+    --text-dim: #8b93a1;
+    --text-on-accent: #0f1216;
+    --link: #6ea8ff;
+    --border: #2a313b;
+    --border-control: #6b7480;
+    --focus: #6ea8ff;
+    --accent: #4f8cff;
+    --accent-tint: rgba(79, 140, 255, 0.12);
+    --ok: #34c38f;
+    --ok-tint: rgba(52, 195, 143, 0.12);
+    --warn: #f0b429;
+    --warn-tint: rgba(240, 180, 41, 0.12);
+    --fault: #ef5d5d;
+    --fault-tint: rgba(239, 93, 93, 0.12);
+    --info: #6ea8ff;
+    --info-tint: rgba(110, 168, 255, 0.12);
+    --muted: #8b93a1;
+    --muted-tint: rgba(139, 147, 161, 0.12);
+    --font-display: "IBM Plex Sans", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+    --track-display: 0;
+    --r: 4px;
+    --r-lg: 6px;
+    --glow-accent: none;
+    --glow-accent-inset: none;
+    --glow-brand: none;
+    --glow-fault: none;
+    --scanline-alpha: 0;
   }
 }

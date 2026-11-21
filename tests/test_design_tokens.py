@@ -137,3 +137,59 @@ def test_an_unknown_status_is_neutral_not_ok():
     assert status_tone(None) == "muted"
     assert status_label("Not_Working") == "Not working"
     assert status_label(None) == "—"
+
+
+# --- The desktop themes (2026-11-21): Ledger and Graphite at 1024 px and wider, Synthwave everywhere else -------
+
+def _theme(name: str) -> dict[str, str]:
+    """A desktop theme's tokens: :root's, with the theme's own block (inside the 64rem media query) on top."""
+    text = open(os.path.join(CSS, "tokens.css"), encoding="utf-8").read()
+    desk = text.split("@media (min-width: 64rem) {", 1)[1].split("\n}\n", 1)[0]
+    for sel, body in re.findall(r"((?::root\[data-theme=\"\w+\"\],?\s*)+)\{([^}]*)\}", desk):
+        if f'data-theme="{name}"' in sel:
+            own = dict(re.findall(r"(--[\w-]+)\s*:\s*([^;]+);", body))
+            return {**TOKENS, **{k: v.strip() for k, v in own.items()}}
+    raise AssertionError(f"no desktop block for {name}")
+
+
+@pytest.mark.parametrize("theme", ["ledger", "graphite"])
+def test_each_desktop_theme_meets_the_same_contrast_rules(theme):
+    t = _theme(theme)
+    bad = [f"{fg} on {bg} {contrast(t[fg], t[bg]):.2f}" for fg in TEXT for bg in SURFACES if contrast(t[fg], t[bg]) < 4.5]
+    bad += [f"{n} on {bg} {contrast(t[n], t[bg]):.2f}" for n in NON_TEXT for bg in SURFACES if contrast(t[n], t[bg]) < 3.0]
+    bad += [f"--text-on-accent on {bg}" for bg in FILLED if contrast(t["--text-on-accent"], t[bg]) < 4.5]
+    assert not bad, bad
+
+
+def _own(block):
+    return dict(re.findall(r"(--[\w-]+|color-scheme)\s*:\s*([^;]+);", block))
+
+
+def _tokens_css():
+    with open(os.path.join(CSS, "tokens.css"), encoding="utf-8") as f:
+        return f.read()
+
+
+def test_follow_system_is_ledger_unless_the_device_is_dark_then_exactly_graphite():
+    text = _tokens_css()
+    desk = text.split("@media (min-width: 64rem) {", 1)[1].split("\n}\n", 1)[0]
+    assert ':root[data-theme="ledger"],\n  :root[data-theme="system"]' in desk
+    dark = text.split("@media (min-width: 64rem) and (prefers-color-scheme: dark) {", 1)[1].split("\n}\n", 1)[0]
+    graphite = desk.split(':root[data-theme="graphite"]', 1)[1]
+    assert _own(dark) == _own(graphite.split("}", 1)[0])
+
+
+def test_the_professional_themes_drop_glow_and_scanlines_and_use_plex():
+    for theme in ("ledger", "graphite"):
+        t = _theme(theme)
+        assert t["--scanline-alpha"] == "0" and t["--glow-brand"] == "none" and t["--glow-fault"] == "none"
+        assert t["--font-body"].startswith('"IBM Plex Sans"') and t["--font-mono"].startswith('"IBM Plex Mono"')
+    with open(os.path.join(ROOT, "static", "fonts", "OFL-IBMPlex.txt"), encoding="utf-8") as f:
+        assert "SIL Open Font License" in f.read()
+
+
+def test_themes_are_desktop_only_so_a_phone_always_gets_synthwave():
+    """The owner, 2026-11-21: like the Tech Tracker's "Desktop look". No theme block may sit outside the 64rem query."""
+    text = _tokens_css()
+    outside = re.sub(r"@media \(min-width: 64rem\)[^{]*\{.*?\n\}\n", "", text, flags=re.DOTALL)
+    assert "data-theme" not in outside.split("/* --- Desktop themes", 1)[1].split("*/", 1)[1]

@@ -10,7 +10,13 @@ GATBOX's bootstrap.
 | `chakra-petch-600-latin.woff2` | Chakra Petch SemiBold (display) | SIL OFL 1.1, `OFL-ChakraPetch.txt` | Subset to Latin + punctuation, arrows and the euro sign, then converted to WOFF2 with fontTools `pyftsubset` (78.6 KB TTF to 9.6 KB). Chakra Petch declares **no Reserved Font Name**, so a modified version may keep the name. |
 | `ShareTechMono-Regular.ttf` | Share Tech Mono (body) | SIL OFL 1.1, `OFL-ShareTechMono.txt` | **Nothing.** Byte-identical to upstream (sha256 `9ceab1f8…a6732677`). The font reserves the name "Share", and the OFL forbids a *Modified Version* from using a Reserved Font Name. Whether a WOFF2 conversion or a subset counts as modification is a question for the OFL FAQ, which could not be checked when this was vendored (2026-10-08). Shipping the original file needs no interpretation, and at 43 KB it costs little. |
 
-Both OFL texts must stay beside the fonts: the licence requires that it travels with them.
+| `IBMPlexSans-Regular-Latin1.woff2`, `IBMPlexSans-SemiBold-Latin1.woff2` | IBM Plex Sans 400 and 600 (Ledger and Graphite, 2026-11-21) | SIL OFL 1.1, `OFL-IBMPlex.txt` | **Nothing.** IBM's own Latin-1 subsets, byte-identical to `fonts/split/woff2/` in IBM's `@ibm/plex-sans` 1.1.0 on npm (published 2024-11-11). |
+| `IBMPlexMono-Regular-Latin1.woff2` | IBM Plex Mono 400 (numbers and codes in Ledger and Graphite) | SIL OFL 1.1, `OFL-IBMPlex.txt` | **Nothing.** The same, from IBM's `@ibm/plex-mono` 2.5.0 (published 2026-06-11). |
+
+Plex reserves the name "Plex", so it is shipped exactly as IBM publishes it, like Share Tech Mono: IBM's own subsets, not
+ones made here. Browsers fetch them only on a desktop page in Ledger or Graphite.
+
+The OFL texts must stay beside the fonts: the licence requires that it travels with them.
 
 To rebuild the Chakra Petch subset:
 

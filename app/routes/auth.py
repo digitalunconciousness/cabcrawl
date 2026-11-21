@@ -17,7 +17,7 @@ from flask import (
 from flask_login import current_user, login_required, login_user, logout_user
 
 from app.extensions import db, limiter
-from app.forms.auth import ChangePasswordForm, LoginForm, ProfileForm
+from app.forms.auth import ChangePasswordForm, LoginForm, ProfileForm, ThemeForm
 from app.models import User
 from app.security.utils import (
     check_password_strength,
@@ -242,8 +242,23 @@ def profile():
 
     from app.services.accounts import ROLE_TEXT
 
-    return render_template("profile.html", form=form, role_text=ROLE_TEXT), (
+    return render_template("profile.html", form=form, role_text=ROLE_TEXT,
+                           theme_form=ThemeForm(desk_theme=current_user.desk_theme)), (
         400 if form.errors else 200)
+
+
+@auth_bp.route("/profile/theme", methods=["POST"])
+@login_required
+def profile_theme():
+    """The desktop look, per person (the owner, 2026-11-21). Phones always get synthwave."""
+    form = ThemeForm()
+    if form.validate_on_submit():
+        current_user.desk_theme = form.desk_theme.data
+        db.session.commit()
+        flash("Desktop look saved.", "success")
+    else:
+        flash("Pick one of the looks.", "error")
+    return redirect(url_for("auth.profile") + "#look")
 
 
 @auth_bp.route("/change_password", methods=["GET", "POST"])
