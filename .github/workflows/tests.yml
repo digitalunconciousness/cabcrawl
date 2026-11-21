@@ -65,8 +65,10 @@ jobs:
 
       # The suite uses a throwaway SQLite database (tests/conftest.py overrides
       # DATABASE_URL for the whole session), so CI needs no PostgreSQL service.
+      # python -m, as CLAUDE.md says: it puts the checkout on sys.path, which the tests'
+      # `import app` and `from tests...` need (bare `pytest` fails them at collection).
       - name: pytest
-        run: pytest
+        run: python -m pytest
 
   lint:
     runs-on: ubuntu-latest
