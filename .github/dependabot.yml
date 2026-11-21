@@ -1,0 +1,15 @@
+# Dependabot opens a PR when an action these workflows use has a new release (checkout,
+# setup-python, setup-node, upload-artifact, codeql-action). Python packages are left to
+# the owner, who pins them on purpose.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "CI"

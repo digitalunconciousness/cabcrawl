@@ -1,22 +1,54 @@
 name: tests
 
-# Manual only for now: Actions never starts the jobs on this account, so automatic
-# runs just leave every push red. Restore the push and pull_request triggers in Step 6.
+# On every push to master and every PR (Actions starts jobs on this account again,
+# 2026-11-21), weekly, and by hand.
 on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  # Weekly, so a change on GitHub's side (a new runner image, a new Chromium) shows up
+  # here rather than in the middle of somebody's PR.
+  schedule:
+    - cron: '37 10 * * 0'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    # The repository is checked out as cabcrawl/, with Gatbox/ and ArcadeTech-Tracker/ beside
+    # it, so the sibling tests (test_api_v1_contract, test_library_contract, test_agent_rules,
+    # test_antislop, test_privacy_check) compare every vendored copy with the other two
+    # repositories' default branches. GATBOX owns them: when this copy differs, Gatbox's is
+    # the one to copy.
+    defaults:
+      run:
+        working-directory: cabcrawl
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          path: cabcrawl
+      - uses: actions/checkout@v7
+        with:
+          repository: digitalunconciousness/Gatbox
+          path: Gatbox
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: digitalunconciousness/ArcadeTech-Tracker
+          path: ArcadeTech-Tracker
+          persist-credentials: false
 
       # 3.11 is what the deployment runs (/opt/arcade-tracker/venv is Debian
       # bookworm's python3.11). Testing on anything else tests a different stack.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
           cache: pip
+          cache-dependency-path: cabcrawl/requirements*.txt
 
       - name: Install
         run: |
@@ -29,17 +61,20 @@ jobs:
         run: |
           python -VV
           python -c "import sqlalchemy, psycopg2; print('SQLAlchemy', sqlalchemy.__version__, '| psycopg2', psycopg2.__version__.split()[0])"
+          for r in Gatbox ArcadeTech-Tracker; do echo "$r at $(git -C ../$r log -1 --format='%h %s')"; done
 
       # The suite uses a throwaway SQLite database (tests/conftest.py overrides
       # DATABASE_URL for the whole session), so CI needs no PostgreSQL service.
+      # python -m, as CLAUDE.md says: it puts the checkout on sys.path, which the tests'
+      # `import app` and `from tests...` need (bare `pytest` fails them at collection).
       - name: pytest
-        run: pytest
+        run: python -m pytest
 
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
       - name: Byte-compile everything that is meant to run
@@ -53,3 +88,41 @@ jobs:
             [ -e "$f" ] || continue
             bash -n "$f" && echo "ok $f"
           done
+
+  pages:
+    # Every page in a real browser, on the synthetic arcade: no content-security-policy
+    # violation (csp_check.py), and the 390 and 1280 px screenshots of every page and every
+    # desktop look (take.py), kept on the run under Artifacts for 14 days.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+          python -m playwright install --with-deps chromium
+      - name: No content-security-policy violation on any page
+        run: python tests/screenshots/csp_check.py
+      - name: Screenshots, every page, at 390 and 1280 px, in each desktop look
+        if: always()
+        run: |
+          # --theme arrives with the desktop looks (PR #52); before that, one set.
+          if python tests/screenshots/take.py --help | grep -q -- --theme; then
+            for look in synthwave ledger graphite; do
+              python tests/screenshots/take.py "$RUNNER_TEMP/shots/$look" --theme "$look"
+            done
+          else
+            python tests/screenshots/take.py "$RUNNER_TEMP/shots/synthwave"
+          fi
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: ${{ runner.temp }}/shots
+          if-no-files-found: ignore
+          retention-days: 14
