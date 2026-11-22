@@ -38,6 +38,43 @@ def test_the_sequence_check_is_a_no_op_off_postgresql(check_schema, app):
         assert check_schema.check_sequences(db, {"game"}) == []
 
 
+class _PostgresLike:
+    """Enough of flask_sqlalchemy's db for check_sequences, answering as PostgreSQL would for tables
+    whose one row is id 1 and whose sequence has never been used (last_value 1, is_called false)."""
+
+    def __init__(self, metadata):
+        from types import SimpleNamespace
+        self.engine = SimpleNamespace(dialect=SimpleNamespace(name="postgresql"))
+        self.metadata = metadata
+        self.session = self
+
+    def execute(self, stmt, params=None):
+        from types import SimpleNamespace
+        sql = str(stmt)
+        if "pg_get_serial_sequence" in sql:
+            return SimpleNamespace(scalar=lambda: f"public.{params['t']}_id_seq")
+        if sql.startswith("SELECT max("):
+            return SimpleNamespace(scalar=lambda: 1)
+        return SimpleNamespace(one=lambda: (1, False))
+
+
+def test_a_single_row_table_written_with_its_own_id_is_not_a_stale_sequence(check_schema):
+    """2026-11-22: library_state (always id 1, written so) stopped a deploy after its first pull.
+    A table off that list in the same state is still caught: the check is not weakened."""
+    from app.extensions import db
+
+    fake = _PostgresLike(db.metadata)
+    assert "library_state" in check_schema.SINGLE_ROW
+    assert check_schema.check_sequences(fake, {"library_state"}) == []
+    assert check_schema.check_sequences(fake, {"game"}) == [("game", "public.game_id_seq", "id", 1, 1)]
+
+
+def test_the_single_row_tables_are_the_ones_written_with_a_fixed_id():
+    """Each table on the list is one the code creates with an explicit id; a new entry needs that too."""
+    with open(os.path.join(REPO_ROOT, "app", "services", "library_pull.py"), encoding="utf-8") as fh:
+        assert "LibraryState(id=1," in fh.read()
+
+
 def test_the_repair_names_the_table_column_and_sequence(check_schema, capsys):
     check_schema.report_sequences([("game", "public.game_id_seq", "id", 1, 100)])
     out = capsys.readouterr().out
