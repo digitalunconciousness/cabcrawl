@@ -199,6 +199,14 @@ def check_encoding(db) -> dict | None:
         f"  see deploy/RUNBOOK.md, 'If the database is SQL_ASCII'.")}
 
 
+# Tables that hold one row with a fixed id, written with that id, so their sequence is never
+# used and stays at its start whatever is in the table. Flagging them would stop every deploy
+# once the row exists (it did: 2026-11-22, library_state after its first pull).
+SINGLE_ROW = {
+    "library_state": "always id 1, made by app/services/library_pull.py _state()",
+}
+
+
 def check_sequences(db, live_tables) -> list[tuple[str, str, str, int, int]]:
     """Integer primary keys whose sequence is at or below the largest id in use.
 
@@ -209,7 +217,7 @@ def check_sequences(db, live_tables) -> list[tuple[str, str, str, int, int]]:
         return []
     stale = []
     for name, table in sorted(db.metadata.tables.items()):
-        if name not in live_tables:
+        if name not in live_tables or name in SINGLE_ROW:
             continue
         pks = [c for c in table.primary_key.columns]
         if len(pks) != 1 or not isinstance(pks[0].type, sa.Integer):
